@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block header %}
+<h1>Easy image labeling</h1>
+{% endblock %}
+
+{% block content %}
+<nav>
+    <ul>
+        <li><a href="{{ url_for('config.configure_labels') }}">Configure labels</a>
+    </ul>
+</nav>
+{% endblock %}
