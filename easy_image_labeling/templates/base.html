@@ -1,6 +1,15 @@
 <!doctype html>
 <title>{% block title %}{% endblock %} - Easy image labeling</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <p style="text-align: center; background-color:Tomato;">{{ message }}</p>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
 <section class="content">
   <header>
     {% block header %}{% endblock %}
