@@ -72,7 +72,7 @@ class NoSpecialCharactersValidator:
         if input is None:
             raise ValidationError("Invalid input.")
         for excluded_character in self.excluded_characters:
-            if " " in input:
+            if excluded_character in input:
                 raise ValidationError(
                     f"Input must not contain any '{excluded_character}' characters"
                 )
