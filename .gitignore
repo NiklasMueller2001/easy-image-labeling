@@ -171,4 +171,4 @@ cython_debug/
 .pypirc
 
 # Datasets storage
-.gitignore
+*/datasets

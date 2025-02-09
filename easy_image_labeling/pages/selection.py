@@ -61,7 +61,7 @@ def upload_folder():
         if upload_form.validate_on_submit():
             upload_path = current_app.config["DATASET_FOLDER"] / dataset_name
             if not Path(upload_path).exists():
-                Path(upload_path).mkdir()  # Ensure upload directory exists
+                Path(upload_path).mkdir(parents=True)  # Ensure upload directory exists
             for file in upload_form.files.data:
                 filename = secure_filename(file.filename)
                 file.save(upload_path / filename)
