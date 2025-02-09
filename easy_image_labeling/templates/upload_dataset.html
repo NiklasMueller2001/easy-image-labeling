@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <h1>{% block title %}Upload your dataset{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<h2>Upload Folder</h2>
+{% from "_formhelpers.html" import render_field_errors %}
+<form method="POST" enctype="multipart/form-data" action="{{ url_for('config.upload_folder') }}">
+    {{ form.hidden_tag() }}
+    {{ render_field_errors(form.files) }}
+    {{ render_field_errors(form.dataset_name) }}
+
+    <input type="file" id="fileInput" name="files" multiple webkitdirectory>    
+    <ul id="fileList"></ul>
+    <p><b>Name your dataset</b></p>
+    {{ form.dataset_name }}<br><br>
+    {{ form.submit }}
+</form>
+
+<script>
+    document.getElementById("fileInput").addEventListener("change", function(event) {
+        let fileList = document.getElementById("fileList");
+        fileList.innerHTML = "";  // Clear list
+        
+        for (let file of event.target.files) {
+            let listItem = document.createElement("li");
+            listItem.textContent = file.webkitRelativePath;  // Show folder structure
+            fileList.appendChild(listItem);
+        }
+    });
+</script>
+{% endblock %}
