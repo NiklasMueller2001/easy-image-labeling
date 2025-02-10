@@ -12,6 +12,7 @@ def create_app():
     app.config.from_object(DevConfig)
     app.register_blueprint(selection.bp)
     app.register_blueprint(classify.bp)
+    app.jinja_env.filters['zip'] = zip
     try:
         os.makedirs(app.instance_path)
     except OSError:

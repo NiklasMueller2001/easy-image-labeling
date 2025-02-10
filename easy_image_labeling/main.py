@@ -1,8 +1,9 @@
-from easy_image_labeling import create_app
-from flask import render_template, session
-from waitress import serve
-from flask_wtf import CSRFProtect
 from easy_image_labeling.dataset_manager import DatasetManager
+from easy_image_labeling import create_app
+from flask import render_template, g
+from flask_wtf import CSRFProtect
+from pathlib import Path
+from waitress import serve
 
 app = create_app()
 csrf = CSRFProtect(app)
@@ -11,11 +12,21 @@ csrf = CSRFProtect(app)
 @app.route("/")
 @app.route("/index")
 def index():
-    session["datasets"] = list(
+    # print(list(map(lambda data: data.address.stem, DatasetManager().managed_datasets)))
+    # dataset_name = session["datasets"][0]
+    # DatasetManager().remove(dataset_name)
+    return render_template("index.html")
+
+
+@app.before_request
+def get_context() -> None:
+    g.dataset_names = list(
         map(lambda data: data.address.stem, DatasetManager().managed_datasets)
     )
-    print(list(map(lambda data: data.address.stem, DatasetManager().managed_datasets)))
-    return render_template("index.html")
+    g.dataset_num_files = [
+        DatasetManager()[dataset_name].num_files for dataset_name in g.dataset_names
+    ]
+    print(DatasetManager())
 
 
 if __name__ == "__main__":

@@ -1,18 +1,24 @@
+from werkzeug.datastructures.file_storage import FileStorage
+from werkzeug.utils import secure_filename
 from pathlib import Path
+import shutil
 
 
 class Dataset:
     dataset_root_folder: str
 
-    def __init__(self, address: str | Path) -> None:
-        address = Path(address)
-        address.is_relative_to
+    def __init__(self, address: Path) -> None:
+        self._address = address.with_name(secure_filename(address.stem))
         if not (
-            address.is_dir() and address.is_relative_to(Dataset.dataset_root_folder)
+            self._address.is_dir()
+            and self._address.is_relative_to(Dataset.dataset_root_folder)
         ):
-            raise ValueError("Invalid dataset path.")
-        self.address = address
-        self.files = list(self.address.glob("*"))
+            raise ValueError(f"Invalid dataset path: {self.address}")
+        self.files = list(self._address.glob("*"))
+
+    @property
+    def address(self) -> Path:
+        return self._address
 
     @property
     def num_files(self) -> int:
@@ -33,11 +39,35 @@ class DatasetManager:
         cls.managed_datasets.add(dataset)
 
     @classmethod
-    def remove(cls, dataset: Dataset) -> None:
-        return cls.managed_datasets.remove(dataset)
+    def remove(cls, dataset_name: str) -> None:
+        for dataset in DatasetManager.managed_datasets:
+            print(dataset.address.stem)
+        dataset: Dataset = list(
+            filter(
+                lambda dataset: dataset.address.stem == dataset_name,
+                DatasetManager.managed_datasets,
+            )
+        )[0]
+        cls.managed_datasets.remove(dataset)
+        if (
+            Path(__file__).parent in Path(Dataset.dataset_root_folder).parents
+            and Path(Dataset.dataset_root_folder) in dataset.address.parents
+        ):
+            print(f"Removing {dataset.address} ({dataset.num_files} images).")
+            shutil.rmtree(dataset.address)
 
     def __len__(self) -> int:
         return len(self.managed_datasets)
+
+    def __getitem__(self, dataset_name: str) -> Dataset:
+        """
+        Convinience method to retrieve Dataset objects held by this
+        DatasetManager.
+        """
+        for managed_datasets in DatasetManager.managed_datasets:
+            if managed_datasets.address.stem == dataset_name:
+                return managed_datasets
+        raise KeyError(f"Dataset {dataset_name} is not managed by this DatasetManager.")
 
     def __str__(self) -> str:
         s = f"DatasetManager holding {len(self)} datasets:\n"
