@@ -1,4 +1,5 @@
 from easy_image_labeling.forms import LabelNameFormContainer, UploadFolderForm
+from easy_image_labeling.dataset_manager import Dataset, DatasetManager
 from flask import (
     Blueprint,
     current_app,
@@ -66,6 +67,10 @@ def upload_folder():
                 filename = secure_filename(file.filename)
                 file.save(upload_path / filename)
 
+            DatasetManager().add(Dataset(upload_path))
+            session["datasets"] = list(
+                map(lambda data: data.address.stem, DatasetManager().managed_datasets)
+            )
             flash("Files uploaded successfully!", "success")
             return render_template("index.html")
         for field in upload_form.errors:

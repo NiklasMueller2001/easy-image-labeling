@@ -3,17 +3,41 @@
 <title>{% block title %}{% endblock %} - Easy image labeling</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 {% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <ul class=flashes>
-    {% for message in messages %}
-      <p style="text-align: center; background-color:Tomato;">{{ message }}</p>
-    {% endfor %}
-    </ul>
-  {% endif %}
+{% if messages %}
+<ul class=flashes>
+  {% for message in messages %}
+  <p style="text-align: center; background-color:Tomato;">{{ message }}</p>
+  {% endfor %}
+</ul>
+{% endif %}
 {% endwith %}
 <section class="content">
   <header>
-    {% block header %}{% endblock %}
+
+    <body style="background-color:white;">
+      <div class="navbar">
+        <a href="{{ url_for('index') }}">Home</a>
+        <div class="dropdown">
+          <button class="dropbtn">Classify dataset
+            <i class="fa fa-caret-down"></i>
+          </button>
+          <div class="dropdown-content">
+            {% for dataset in session.datasets %}
+            <a href="{{ url_for('classify.classify', dataset=dataset) }}">{{ dataset }}</a>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="dropdown">
+          <button class="dropbtn">Edit datasets
+            <i class="fa fa-caret-down"></i>
+          </button>
+          <div class="dropdown-content">
+            <a href="{{ url_for('config.configure_labels') }}">Add dataset</a>
+            <a href="#">Remove dataset</a>
+          </div>
+        </div>
+      </div>
+      {% block header %}{% endblock %}
   </header>
   {% block content %}{% endblock %}
 </section>

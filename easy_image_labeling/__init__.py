@@ -1,6 +1,7 @@
 import os
 from easy_image_labeling.config import DevConfig
 from easy_image_labeling.pages import selection
+from easy_image_labeling.pages import classify
 from flask import Flask, current_app
 from easy_image_labeling.dataset_manager import Dataset, DatasetManager
 from pathlib import Path
@@ -10,6 +11,7 @@ def create_app():
     app = Flask(__name__, template_folder="./templates")
     app.config.from_object(DevConfig)
     app.register_blueprint(selection.bp)
+    app.register_blueprint(classify.bp)
     try:
         os.makedirs(app.instance_path)
     except OSError:
