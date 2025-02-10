@@ -20,7 +20,7 @@ def index():
 
 @app.before_request
 def get_context() -> None:
-    g.dataset_names = list(
+    g.dataset_names = sorted(
         map(lambda data: data.address.stem, DatasetManager().managed_datasets)
     )
     g.dataset_num_files = [
