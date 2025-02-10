@@ -1,7 +1,8 @@
 from typing import Any
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileAllowed, FileRequired
+from flask_wtf.file import FileAllowed
 from wtforms import (
+    BooleanField,
     FieldList,
     FormField,
     Form,
@@ -146,3 +147,19 @@ class UploadFolderForm(FlaskForm):
         ],
     )
     submit = SubmitField("Upload Files")
+
+
+class RemoveDatasetForm(FlaskForm):
+    dataset_name = StringField(
+        "dataset_name", render_kw={"readonly": True}
+    )
+    marked = BooleanField("remove", default=False)
+
+
+class RemoveMultipleDatasetsForm(FlaskForm):
+    remove_datasets_forms = FieldList(
+        FormField(RemoveDatasetForm),
+        "All Datasets",
+        min_entries=0,
+    )
+    submit = SubmitField()

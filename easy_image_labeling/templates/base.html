@@ -22,7 +22,7 @@
             <i class="fa fa-caret-down"></i>
           </button>
           <div class="dropdown-content">
-            {% for dataset in session.datasets %}
+            {% for dataset in g.dataset_names %}
             <a href="{{ url_for('classify.classify', dataset=dataset) }}">{{ dataset }}</a>
             {% endfor %}
           </div>
@@ -33,7 +33,7 @@
           </button>
           <div class="dropdown-content">
             <a href="{{ url_for('config.configure_labels') }}">Add dataset</a>
-            <a href="#">Remove dataset</a>
+            <a href="{{ url_for('config.select_datasets_to_remove') }}">Remove dataset</a>
           </div>
         </div>
       </div>

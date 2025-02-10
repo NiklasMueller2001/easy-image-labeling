@@ -5,6 +5,8 @@ import shutil
 
 
 class Dataset:
+    """Represents a dataset that is stored on the file system."""
+
     dataset_root_folder: str
 
     def __init__(self, address: Path) -> None:
@@ -26,6 +28,8 @@ class Dataset:
 
 
 class DatasetManager:
+    """Singleton that manages all currently stored datasets."""
+
     _instance = None
     managed_datasets: set[Dataset] = set()
 
@@ -40,8 +44,9 @@ class DatasetManager:
 
     @classmethod
     def remove(cls, dataset_name: str) -> None:
-        for dataset in DatasetManager.managed_datasets:
-            print(dataset.address.stem)
+        """
+        Remove dataset from internal memory and delete dataset folder.
+        """
         dataset: Dataset = list(
             filter(
                 lambda dataset: dataset.address.stem == dataset_name,

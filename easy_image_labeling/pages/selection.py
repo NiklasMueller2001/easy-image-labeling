@@ -1,4 +1,8 @@
-from easy_image_labeling.forms import LabelNameFormContainer, UploadFolderForm
+from easy_image_labeling.forms import (
+    LabelNameFormContainer,
+    UploadFolderForm,
+    RemoveMultipleDatasetsForm,
+)
 from easy_image_labeling.dataset_manager import Dataset, DatasetManager
 from flask import (
     Blueprint,
@@ -66,15 +70,37 @@ def upload_folder():
             for file in upload_form.files.data:
                 filename = secure_filename(file.filename)
                 file.save(upload_path / filename)
-
             DatasetManager().add(Dataset(upload_path))
-            session["datasets"] = list(
-                map(lambda data: data.address.stem, DatasetManager().managed_datasets)
-            )
             flash("Files uploaded successfully!", "success")
-            return render_template("index.html")
+            return redirect(url_for("index"))
         for field in upload_form.errors:
             if upload_form.errors[field]:
                 for error in upload_form.errors[field]:
                     flash(error)
     return redirect(url_for("config.set_class_names"))
+
+
+@bp.route("/remove_datasets", methods=["POST", "GET"])
+def select_datasets_to_remove():
+    remove_datasets_form = RemoveMultipleDatasetsForm()
+    if request.method == "GET":
+        for dataset_name in g.dataset_names:
+            remove_datasets_form.remove_datasets_forms.append_entry(
+                {"dataset_name": dataset_name}
+            )
+        print(DatasetManager().managed_datasets)
+    return render_template("remove_datasets.html", form=remove_datasets_form)
+
+
+@bp.route("/index", methods=["POST"])
+def remove_datasets():
+    remove_datasets_form = RemoveMultipleDatasetsForm()
+    if request.method == "POST":
+        remove_datasets_form.process(request.form)
+        if remove_datasets_form.validate_on_submit():
+            for input_form_data in remove_datasets_form.remove_datasets_forms.data:
+                if input_form_data["marked"]:
+                    dataset_to_remove = input_form_data["dataset_name"]
+                    DatasetManager().remove(dataset_to_remove)
+                    flash(f"Removed dataset {dataset_to_remove}")
+    return redirect(url_for("index"))
