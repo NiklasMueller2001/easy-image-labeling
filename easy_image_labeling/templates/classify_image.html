@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block header %}
+  <h1>Classify file</h1>
+{% endblock %}
+  
+  {% block content %}
+    <img src="{{ url_for('static', filename=image) }}" alt="{{ image }}" title="{{ image }}">
+    <hr>
+    <br>
+    <div style="display: flex; flex-wrap: wrap; justify-content: center;">
+        {% for label_button in form.label_buttons %}
+          {{ label_button }}
+        {% endfor %}
+    </div>
+    <br>
+    {{ form.skip_button }}
+{% endblock %}
