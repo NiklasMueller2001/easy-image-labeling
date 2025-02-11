@@ -3,6 +3,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed
 from wtforms import (
     BooleanField,
+    Field,
     FieldList,
     FormField,
     Form,
@@ -12,6 +13,22 @@ from wtforms import (
     SubmitField,
 )
 from wtforms.validators import InputRequired, Length
+from easy_image_labeling.dataset_manager import DatasetManager
+
+
+class DuplicateDatasetNameValidator:
+    """
+    Custom validator to ensure that newly added datasets can not have
+    the same name as existing ones.
+    """
+
+    def __call__(self, form: Form, field: Field) -> Any:
+        _input = field.data
+        existing_dataset_names = list(
+            map(lambda dataset: dataset.address.stem, DatasetManager().managed_datasets)
+        )
+        if _input in existing_dataset_names:
+            raise ValidationError(f"A dataset called {_input} already exists")
 
 
 class DuplicateStringInputValidator:
@@ -64,16 +81,18 @@ class NoSpecialCharactersValidator:
                 "%",
                 "$",
                 "§",
+                "^",
+                "°",
             ]
         else:
             self.excluded_characters = excluded_characters
 
     def __call__(self, form: Form, field: StringField) -> Any:
-        input = field.data
-        if input is None:
+        _input = field.data
+        if _input is None:
             raise ValidationError("Invalid input.")
         for excluded_character in self.excluded_characters:
-            if excluded_character in input:
+            if excluded_character in _input:
                 raise ValidationError(
                     f"Input must not contain any '{excluded_character}' characters"
                 )
@@ -144,15 +163,14 @@ class UploadFolderForm(FlaskForm):
             InputRequired(),
             Length(min=1, max=20),
             NoSpecialCharactersValidator(),
+            DuplicateDatasetNameValidator(),
         ],
     )
     submit = SubmitField("Upload Files")
 
 
 class RemoveDatasetForm(FlaskForm):
-    dataset_name = StringField(
-        "dataset_name", render_kw={"readonly": True}
-    )
+    dataset_name = StringField("dataset_name", render_kw={"readonly": True})
     marked = BooleanField("remove", default=False)
 
 
