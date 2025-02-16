@@ -3,6 +3,12 @@ from easy_image_labeling.forms import (
     UploadFolderForm,
     RemoveMultipleDatasetsForm,
 )
+from easy_image_labeling.db.db import (
+    sqlite_connection,
+    bulk_insert_images,
+    remove_dataset_from_db,
+    insert_labels,
+)
 from easy_image_labeling.dataset_manager import Dataset, DatasetManager
 from flask import (
     Blueprint,
@@ -67,10 +73,16 @@ def upload_folder():
             upload_path = current_app.config["DATASET_FOLDER"] / dataset_name
             if not Path(upload_path).exists():
                 Path(upload_path).mkdir(parents=True)  # Ensure upload directory exists
+            image_filenames = []
             for file in upload_form.files.data:
                 filename = secure_filename(file.filename)
+                image_filenames.append(filename)
                 file.save(upload_path / filename)
-            DatasetManager().add(Dataset(upload_path))
+            dataset = Dataset(upload_path)
+            DatasetManager().add(dataset)
+            with sqlite_connection(current_app.config["DB_URL"]) as cur:
+                insert_labels(cur, dataset_name, list(session["label_names"].values()))
+                bulk_insert_images(cur, dataset_name, image_filenames, chunk_size=50)
             flash("Files uploaded successfully!", "success")
             return redirect(url_for("index"))
         for field in upload_form.errors:
@@ -88,7 +100,6 @@ def select_datasets_to_remove():
             remove_datasets_form.remove_datasets_forms.append_entry(
                 {"dataset_name": dataset_name}
             )
-        print(DatasetManager().managed_datasets)
     return render_template("remove_datasets.html", form=remove_datasets_form)
 
 
@@ -102,5 +113,7 @@ def remove_datasets():
                 if input_form_data["marked"]:
                     dataset_to_remove = input_form_data["dataset_name"]
                     DatasetManager().remove(dataset_to_remove)
+                    with sqlite_connection(current_app.config["DB_URL"]) as cur:
+                        remove_dataset_from_db(cur, dataset_to_remove)
                     flash(f"Removed dataset {dataset_to_remove}")
     return redirect(url_for("index"))
