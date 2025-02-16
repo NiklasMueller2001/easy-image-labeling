@@ -6,6 +6,8 @@ class Config:
         SECRET_KEY = f.read()
     MAX_FILE_SIZE = 5 * 1024 * 1024  # 10MB
     DATASET_FOLDER = Path(__file__).parent / "static" / "datasets"
+    DB_URL = Path(__file__).parent / "db" / "database.sqlite"
+    DB_SCHEMA = Path(__file__).parent / "db" / "schema.sql"
 
 
 class DevConfig(Config):
