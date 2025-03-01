@@ -23,7 +23,7 @@
           </button>
           <div class="dropdown-content">
             {% for dataset in g.dataset_names %}
-            <a href="{{ url_for('classify.classify', dataset=dataset) }}">{{ dataset }}</a>
+            <a href="{{ url_for('classify.classify_next_image', dataset=dataset) }}">{{ dataset }}</a>
             {% endfor %}
           </div>
         </div>
