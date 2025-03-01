@@ -59,3 +59,37 @@ def remove_dataset_from_db(cur: sqlite3.Cursor, dataset: str) -> None:
     """
     cur.execute("DELETE FROM Image WHERE Dataset = ?", (dataset,))
     cur.execute("DELETE FROM Label WHERE Dataset = ?", (dataset,))
+
+
+def get_lowest_image_id(cur: sqlite3.Cursor, dataset: str) -> int:
+    """
+    Rtrieve lowest ImageId of row in Image table, that contains
+    unlabelled image.
+    """
+    min_dataset_id = cur.execute(
+        "SELECT MIN(DatasetID) FROM Image WHERE Dataset = ? AND LabelName IS NULL",
+        (dataset,),
+    ).fetchone()[0]
+    return min_dataset_id
+
+
+def get_image_name(cur: sqlite3.Cursor, dataset: str, dataset_id: int) -> int:
+    """
+    Retrieve image name for given Dataset and DatasetId.
+    """
+    image_name = cur.execute(
+        "SELECT ImageName FROM Image WHERE Dataset = ? AND DatasetID = ?",
+        (dataset, dataset_id),
+    ).fetchone()[0]
+    return image_name
+
+
+def get_labels(cur: sqlite3.Cursor, dataset: str) -> list[str]:
+    """
+    Retrieve all labels belonging to a dataset.
+    """
+    labels = cur.execute(
+        "SELECT LabelName FROM Label WHERE Dataset = ?",
+        (dataset,),
+    ).fetchall()
+    return list(map(lambda _tuple: _tuple[0], labels))
