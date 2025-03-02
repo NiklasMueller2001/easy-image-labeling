@@ -8,11 +8,14 @@
     <img src="{{ url_for('static', filename=image) }}" alt="{{ image }}" title="{{ image }}">
     <hr>
     <br>
-    <div style="display: flex; flex-wrap: wrap; justify-content: center;">
+    <form method="POST" action="{{ url_for('classify.submit_classification', dataset=dataset, id=image_id) }}">
+      {{ form.hidden_tag() }}
+      <div style="display: flex; flex-wrap: wrap; justify-content: center;">
         {% for label_button in form.label_buttons %}
           {{ label_button }}
         {% endfor %}
-    </div>
-    <br>
+      </div>
+      <br>
+    </form>
     {{ form.skip_button }}
 {% endblock %}

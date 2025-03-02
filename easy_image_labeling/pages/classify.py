@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, current_app
+from flask import Blueprint, render_template, redirect, url_for, current_app, request
 from easy_image_labeling.db.db import (
     sqlite_connection,
     get_lowest_image_id,
     get_labels,
     get_image_name,
+    set_image_label,
 )
 from easy_image_labeling.dataset_manager import DatasetManager
 from easy_image_labeling.forms import MutliButtonForm
@@ -15,8 +16,9 @@ bp = Blueprint("classify", __name__)
 def create_multibutton_form(labels: list[str]) -> MutliButtonForm:
     multi_button_form = MutliButtonForm()
     for i, label in enumerate(labels):
-        multi_button_form.label_buttons.append_entry()
+        multi_button_form.label_buttons.append_entry(label)
         multi_button_form.label_buttons[i].label.text = label
+        multi_button_form.label_buttons[i].id = label
     return multi_button_form
 
 
@@ -39,5 +41,27 @@ def classify(dataset: str, id: int):
     image_address = f"datasets/{dataset}/{image_name}"
     multi_button_form = create_multibutton_form(dataset_labels)
     return render_template(
-        "classify_image.html", image=image_address, form=multi_button_form
+        "classify_image.html",
+        image=image_address,
+        form=multi_button_form,
+        dataset=dataset,
+        image_id=id,
     )
+
+
+@bp.route("/classify/<dataset>/<id>/submit", methods=["POST"])
+def submit_classification(dataset: str, id: int):
+    """
+    Process the submitted form, update image label in the database, and
+    load the next image.
+    """
+    multi_button_form = MutliButtonForm()
+    if request.method == "POST":
+        if multi_button_form.validate_on_submit():
+            for k, v in request.form.items():
+                if k.startswith("label_buttons"):
+                    selected_label = v
+
+        with sqlite_connection(current_app.config["DB_URL"]) as cur:
+            set_image_label(cur, dataset, id, selected_label)
+    return redirect(url_for("classify.classify_next_image", dataset=dataset))

@@ -93,3 +93,18 @@ def get_labels(cur: sqlite3.Cursor, dataset: str) -> list[str]:
         (dataset,),
     ).fetchall()
     return list(map(lambda _tuple: _tuple[0], labels))
+
+
+def set_image_label(
+    cur: sqlite3.Cursor, dataset: str, dataset_id: int, label: str | None
+) -> None:
+    """
+    Set label column of image inside dataset with given dataset id to
+    specified value. If no label is specified, set label to 'Unknown'.
+    """
+    if label is None:
+        label = "Unknown"  # Skipped images appear with label "Unknown" in database
+    cur.execute(
+        "UPDATE IMAGE SET LabelName = ? WHERE Dataset = ? AND DatasetID = ?",
+        (label, dataset, dataset_id),
+    )
