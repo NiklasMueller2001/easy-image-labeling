@@ -84,6 +84,26 @@ def get_image_name(cur: sqlite3.Cursor, dataset: str, dataset_id: int) -> int:
     return image_name
 
 
+def get_size_of_dataset(cur: sqlite3.Cursor, dataset: str) -> int:
+    """
+    Retrieve the totatl number of images in the specified dataset.
+    """
+    return cur.execute(
+        "SELECT MAX(ImageID) FROM Image WHERE Dataset = ?",
+        (dataset,),
+    ).fetchone()[0]
+
+
+def get_num_of_skipped_images(cur: sqlite3.Cursor, dataset: str) -> int:
+    """
+    Retrieve the number of skipped images in the specified dataset.
+    """
+    return cur.execute(
+        "SELECT COUNT(*) FROM Image WHERE Dataset = ? AND LabelName = ?",
+        (dataset, "Unknown"),
+    ).fetchone()[0]
+
+
 def get_labels(cur: sqlite3.Cursor, dataset: str) -> list[str]:
     """
     Retrieve all labels belonging to a dataset.

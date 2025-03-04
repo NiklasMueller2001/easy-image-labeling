@@ -1,8 +1,20 @@
-from flask import Blueprint, render_template, redirect, url_for, current_app, request
+from flask import (
+    Blueprint,
+    render_template,
+    redirect,
+    url_for,
+    current_app,
+    request,
+    g,
+    session,
+    flash,
+)
 from easy_image_labeling.db.db import (
     sqlite_connection,
     get_lowest_image_id,
     get_labels,
+    get_num_of_skipped_images,
+    get_size_of_dataset,
     get_image_name,
     set_image_label,
 )
@@ -22,9 +34,40 @@ def create_multibutton_form(labels: list[str]) -> MutliButtonForm:
 
 @bp.route("/classify/<dataset>", methods=["POST", "GET"])
 def classify_next_image(dataset: str):
+    """
+    Retrieve the lowest image id of all unlabelled images in the
+    specified dataset (skipped images do not count as unlabelled)
+    and redirect the user to the clasification page of the image
+    with this image id. If all images in the dataset are labelled,
+    redirect user to classification summary page.
+    """
     with sqlite_connection(current_app.config["DB_URL"]) as cur:
         image_id = get_lowest_image_id(cur, dataset)
+    if image_id is None:
+        session["allowed_to_view_summary"] = True
+        return redirect(url_for("classify.classification_summary", dataset=dataset))
+
     return redirect(url_for("classify.classify", dataset=dataset, id=image_id))
+
+
+@bp.route("/classify/<dataset>/summary", methods=["GET"])
+def classification_summary(dataset: str):
+    """
+    Display a small summary for the specified dataset. This URL
+    endpoint can not be accessed manually.
+    """
+    if not session.pop("allowed_to_view_summary", False):  # Check and remove flag
+        flash(
+            f"The summary screen can only be accessed once all images of the dataset {dataset} have been labelled or skipped."
+        )
+        flash("Manually accessing this page is forbidden.")
+        return redirect(url_for("index"))
+    with sqlite_connection(current_app.config["DB_URL"]) as cur:
+        g.num_skipped_images = get_num_of_skipped_images(cur, dataset)
+        # Number of labelled images = Number of all images - Number of skipped images, 
+        # only works if there are no unlabelled images in the dataset
+        g.num_labelled_images = get_size_of_dataset(cur, dataset) - g.num_skipped_images
+    return render_template("classification_summary.html", dataset=dataset)
 
 
 @bp.route("/classify/<dataset>/<id>", methods=["POST", "GET"])
