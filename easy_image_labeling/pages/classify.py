@@ -6,9 +6,7 @@ from easy_image_labeling.db.db import (
     get_image_name,
     set_image_label,
 )
-from easy_image_labeling.dataset_manager import DatasetManager
 from easy_image_labeling.forms import MutliButtonForm
-from pathlib import Path
 
 bp = Blueprint("classify", __name__)
 
