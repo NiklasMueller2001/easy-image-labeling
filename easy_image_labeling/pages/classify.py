@@ -65,3 +65,14 @@ def submit_classification(dataset: str, id: int):
         with sqlite_connection(current_app.config["DB_URL"]) as cur:
             set_image_label(cur, dataset, id, selected_label)
     return redirect(url_for("classify.classify_next_image", dataset=dataset))
+
+
+@bp.route("/classify/<dataset>/<id>/skip", methods=["POST"])
+def skip_classification(dataset: str, id: int):
+    """
+    Process the submitted form, update image label in the database, and
+    load the next image.
+    """
+    with sqlite_connection(current_app.config["DB_URL"]) as cur:
+        set_image_label(cur, dataset, id, None)
+    return redirect(url_for("classify.classify_next_image", dataset=dataset))

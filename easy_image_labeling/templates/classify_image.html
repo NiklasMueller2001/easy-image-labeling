@@ -17,5 +17,8 @@
       </div>
       <br>
     </form>
-    {{ form.skip_button }}
+    <form method="POST" action="{{ url_for('classify.skip_classification', dataset=dataset, id=image_id) }}">
+      {{ form.hidden_tag() }}
+      {{ form.skip_button }}
+    </form>
 {% endblock %}
