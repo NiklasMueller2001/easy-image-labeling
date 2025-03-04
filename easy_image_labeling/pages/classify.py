@@ -56,6 +56,7 @@ def submit_classification(dataset: str, id: int):
     load the next image.
     """
     multi_button_form = MutliButtonForm()
+    id = int(id)
     if request.method == "POST":
         if multi_button_form.validate_on_submit():
             for k, v in request.form.items():
@@ -64,15 +65,23 @@ def submit_classification(dataset: str, id: int):
 
         with sqlite_connection(current_app.config["DB_URL"]) as cur:
             set_image_label(cur, dataset, id, selected_label)
-    return redirect(url_for("classify.classify_next_image", dataset=dataset))
+    return redirect(url_for("classify.classify", dataset=dataset, id=id + 1))
 
 
 @bp.route("/classify/<dataset>/<id>/skip", methods=["POST"])
-def skip_classification(dataset: str, id: int):
+def handle_move_button(dataset: str, id: int):
     """
     Process the submitted form, update image label in the database, and
     load the next image.
     """
-    with sqlite_connection(current_app.config["DB_URL"]) as cur:
-        set_image_label(cur, dataset, id, None)
-    return redirect(url_for("classify.classify_next_image", dataset=dataset))
+    action = request.form.get("action")
+    id = int(id)
+    match action:
+        case "skip":
+            with sqlite_connection(current_app.config["DB_URL"]) as cur:
+                set_image_label(cur, dataset, id, None)
+            return redirect(url_for("classify.classify", dataset=dataset, id=id + 1))
+        case "back":
+            return redirect(url_for("classify.classify", dataset=dataset, id=id - 1))
+        case _:
+            return redirect(url_for("/"))

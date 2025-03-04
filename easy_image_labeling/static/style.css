@@ -22,9 +22,12 @@ input[type=text] {
 }
 
 img {
-    width: 50vw;  /* 50% of viewport width */
-    height: auto; /* Maintain aspect ratio */
-    max-height: 60vh; /* Ensure it doesn't get too tall */
+    width: 50vw;
+    /* 50% of viewport width */
+    height: auto;
+    /* Maintain aspect ratio */
+    max-height: 60vh;
+    /* Ensure it doesn't get too tall */
     object-fit: contain;
 }
 
@@ -118,10 +121,20 @@ img {
 .skip_button {
     border: 2px solid rgb(208, 47, 47);
     color: rgb(208, 47, 47);
-    margin-left: 80%;
+    margin-left: 70%;
+}
+
+.back_button {
+    border: 2px solid rgb(208, 47, 47);
+    color: rgb(208, 47, 47);
 }
 
 .skip_button:hover {
     background-color: rgb(208, 47, 47);
-    color: white; 
+    color: white;
+}
+
+.back_button:hover {
+    background-color: rgb(208, 47, 47);
+    color: white;
 }

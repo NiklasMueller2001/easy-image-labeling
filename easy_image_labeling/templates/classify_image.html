@@ -4,21 +4,22 @@
   <h1>Classify file</h1>
 {% endblock %}
   
-  {% block content %}
-    <img src="{{ url_for('static', filename=image) }}" alt="{{ image }}" title="{{ image }}">
-    <hr>
+{% block content %}
+  <img src="{{ url_for('static', filename=image) }}" alt="{{ image }}" title="{{ image }}">
+  <hr>
+  <br>
+  <form method="POST" action="{{ url_for('classify.submit_classification', dataset=dataset, id=image_id) }}">
+    {{ form.hidden_tag() }}
+    <div style="display: flex; flex-wrap: wrap; justify-content: center;">
+      {% for label_button in form.label_buttons %}
+        {{ label_button }}
+      {% endfor %}
+    </div>
     <br>
-    <form method="POST" action="{{ url_for('classify.submit_classification', dataset=dataset, id=image_id) }}">
-      {{ form.hidden_tag() }}
-      <div style="display: flex; flex-wrap: wrap; justify-content: center;">
-        {% for label_button in form.label_buttons %}
-          {{ label_button }}
-        {% endfor %}
-      </div>
-      <br>
-    </form>
-    <form method="POST" action="{{ url_for('classify.skip_classification', dataset=dataset, id=image_id) }}">
-      {{ form.hidden_tag() }}
-      {{ form.skip_button }}
-    </form>
+  </form>
+  <form method="POST" action="{{ url_for('classify.handle_move_button', dataset=dataset, id=image_id) }}">
+    {{ form.hidden_tag() }}
+    <button type="submit" name="action" value="back" class="button back_button">Back</button>
+    <button type="submit" name="action" value="skip" class="button skip_button">Skip</button>
+  </form>
 {% endblock %}

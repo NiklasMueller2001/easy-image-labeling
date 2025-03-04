@@ -161,7 +161,6 @@ class MutliButtonForm(FlaskForm):
         "label_buttons",
         min_entries=0,
     )
-    skip_button = SubmitField("Skip", render_kw={"class": "button skip_button"})
 
 
 class LabelNameForm(FlaskForm):
