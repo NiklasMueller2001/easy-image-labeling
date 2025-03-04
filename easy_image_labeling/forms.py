@@ -98,6 +98,35 @@ class NoSpecialCharactersValidator:
                 )
 
 
+class ForbiddenWordValidator:
+    """
+    Custom validator to ensure the entered text in the input field is
+    not an excluded word.
+    """
+
+    def __init__(self, excluded_words: list[str] | None = None) -> None:
+        """
+        Parameters
+        ----------
+        field_name: str
+            Set name of fields inside field list.
+        """
+        if excluded_words is None:
+            self.excluded_words = [
+                "Unknown",  # Label name reserved for skipped images
+            ]
+        else:
+            self.excluded_words = excluded_words
+
+    def __call__(self, form: Form, field: StringField) -> Any:
+        _input = field.data
+        if _input is None:
+            raise ValidationError("Invalid input.")
+        for excluded_word in self.excluded_words:
+            if excluded_word == _input:
+                raise ValidationError(f"Label name '{excluded_word}' is not allowed.")
+
+
 class PictureFolderValidator:
     """
     Checks if selected folder in upload form contains at least one file
@@ -142,6 +171,7 @@ class LabelNameForm(FlaskForm):
             InputRequired(),
             Length(min=1, max=20),
             NoSpecialCharactersValidator(),
+            ForbiddenWordValidator(),
         ],
     )
 
