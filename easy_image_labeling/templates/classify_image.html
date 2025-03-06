@@ -1,13 +1,28 @@
 {% extends "base.html" %}
 
+{% set num_labelled = num_labelled | int %}
+{% set num_total = num_total | int %}
+{% set ratio = (100 * (num_labelled / num_total)) | round(2) %}
+
 {% block header %}
   <h1>Classify file</h1>
 {% endblock %}
   
 {% block content %}
-  <img src="{{ url_for('static', filename=image) }}" alt="{{ image }}" title="{{ image }}">
+  <div style="display: flex; justify-content: center;">
+    <form 
+        method="POST"
+        action="{{ url_for('classify.reset_all_labels', dataset=dataset) }}"
+        onsubmit="return confirm('Are you sure you want to reset all labels for this dataset? This action is not reversible.');">
+      {{ form.hidden_tag() }}
+        <button type="submit" class="reset_button">Reset all labels</button>
+    </form>
+  </div>
+  <br>
+    <img src="{{ url_for('static', filename=image) }}" alt="{{ image }}" title="{{ image }}">
   <hr>
   <br>
+
   <form method="POST" action="{{ url_for('classify.submit_classification', dataset=dataset, id=image_id) }}">
     {{ form.hidden_tag() }}
     <div style="display: flex; flex-wrap: wrap; justify-content: center;">

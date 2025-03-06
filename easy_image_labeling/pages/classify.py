@@ -17,6 +17,7 @@ from easy_image_labeling.db.db import (
     get_size_of_dataset,
     get_image_name,
     set_image_label,
+    reset_dataset_labels,
 )
 from easy_image_labeling.forms import MutliButtonForm
 
@@ -64,7 +65,7 @@ def classification_summary(dataset: str):
         return redirect(url_for("index"))
     with sqlite_connection(current_app.config["DB_URL"]) as cur:
         g.num_skipped_images = get_num_of_skipped_images(cur, dataset)
-        # Number of labelled images = Number of all images - Number of skipped images, 
+        # Number of labelled images = Number of all images - Number of skipped images,
         # only works if there are no unlabelled images in the dataset
         g.num_labelled_images = get_size_of_dataset(cur, dataset) - g.num_skipped_images
     return render_template("classification_summary.html", dataset=dataset)
@@ -107,6 +108,13 @@ def submit_classification(dataset: str, id: int):
         with sqlite_connection(current_app.config["DB_URL"]) as cur:
             set_image_label(cur, dataset, id, selected_label)
     return redirect(url_for("classify.classify", dataset=dataset, id=id + 1))
+
+
+@bp.route("/classify/<dataset>/reset", methods=["POST"])
+def reset_all_labels(dataset: str):
+    with sqlite_connection(current_app.config["DB_URL"]) as cur:
+        reset_dataset_labels(cur, dataset)
+    return redirect(url_for("classify.classify_next_image", dataset=dataset))
 
 
 @bp.route("/classify/<dataset>/<id>/skip", methods=["POST"])

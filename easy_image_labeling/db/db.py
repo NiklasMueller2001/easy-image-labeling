@@ -128,3 +128,10 @@ def set_image_label(
         "UPDATE IMAGE SET LabelName = ? WHERE Dataset = ? AND DatasetID = ?",
         (label, dataset, dataset_id),
     )
+
+
+def reset_dataset_labels(cur: sqlite3.Cursor, dataset: str) -> None:
+    cur.execute(
+        "UPDATE IMAGE SET LabelName = NULL WHERE Dataset = ?",
+        (dataset,),
+    )
