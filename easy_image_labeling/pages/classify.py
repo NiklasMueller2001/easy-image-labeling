@@ -16,6 +16,7 @@ from easy_image_labeling.db.db import (
     get_num_of_skipped_images,
     get_size_of_dataset,
     get_image_name,
+    get_num_of_labelled_images,
     set_image_label,
     reset_dataset_labels,
 )
@@ -79,6 +80,8 @@ def classify(dataset: str, id: int):
     """
     with sqlite_connection(current_app.config["DB_URL"]) as cur:
         dataset_labels = get_labels(cur, dataset)
+        num_labelled_images = get_num_of_labelled_images(cur, dataset)
+        total_num_images = get_size_of_dataset(cur, dataset)
         image_name = get_image_name(cur, dataset, id)
     image_address = f"datasets/{dataset}/{image_name}"
     multi_button_form = create_multibutton_form(dataset_labels)
@@ -88,6 +91,8 @@ def classify(dataset: str, id: int):
         form=multi_button_form,
         dataset=dataset,
         image_id=id,
+        num_labelled=num_labelled_images,
+        num_total=total_num_images,
     )
 
 

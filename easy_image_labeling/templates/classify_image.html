@@ -17,6 +17,12 @@
       {{ form.hidden_tag() }}
         <button type="submit" class="reset_button">Reset all labels</button>
     </form>
+    <div id="progress_container", style="align-self: center;">
+      <div id="progress_container_text">
+        <div id="progress_container_text_align_center"> {{ num_labelled }} / {{ num_total }} ({{ ratio }}%) </div>
+      </div>
+      <div id="loading_bar" style="width: {{ ratio }}%;"></div>
+    </div>
   </div>
   <br>
     <img src="{{ url_for('static', filename=image) }}" alt="{{ image }}" title="{{ image }}">

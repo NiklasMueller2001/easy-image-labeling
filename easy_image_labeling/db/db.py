@@ -104,6 +104,17 @@ def get_num_of_skipped_images(cur: sqlite3.Cursor, dataset: str) -> int:
     ).fetchone()[0]
 
 
+def get_num_of_labelled_images(cur: sqlite3.Cursor, dataset: str) -> int:
+    """
+    Retrieve the number of labelled images (skipped images included) in
+    the specified dataset.
+    """
+    return cur.execute(
+        "SELECT COUNT(*) FROM Image WHERE Dataset = ? AND LabelName IS NOT NULL",
+        (dataset,),
+    ).fetchone()[0]
+
+
 def get_labels(cur: sqlite3.Cursor, dataset: str) -> list[str]:
     """
     Retrieve all labels belonging to a dataset.
