@@ -22,9 +22,9 @@ input[type=text] {
 }
 
 img {
-    width: 50vw;
-    /* 50% of viewport width */
-    height: auto;
+    height: 25vw;
+    /* 30% of viewport height */
+    width: auto;
     /* Maintain aspect ratio */
     max-height: 60vh;
     /* Ensure it doesn't get too tall */
