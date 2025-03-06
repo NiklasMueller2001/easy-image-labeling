@@ -107,6 +107,12 @@ def submit_classification(dataset: str, id: int):
 
         with sqlite_connection(current_app.config["DB_URL"]) as cur:
             set_image_label(cur, dataset, id, selected_label)
+            max_size = get_size_of_dataset(cur, dataset)
+            if id + 1 > max_size:
+                return redirect(
+                    url_for("classify.classify_next_image", dataset=dataset)
+                )
+
     return redirect(url_for("classify.classify", dataset=dataset, id=id + 1))
 
 
@@ -129,8 +135,15 @@ def handle_move_button(dataset: str, id: int):
         case "skip":
             with sqlite_connection(current_app.config["DB_URL"]) as cur:
                 set_image_label(cur, dataset, id, None)
+                max_size = get_size_of_dataset(cur, dataset)
+                if id + 1 > max_size:
+                    return redirect(
+                        url_for("classify.classify_next_image", dataset=dataset)
+                    )
             return redirect(url_for("classify.classify", dataset=dataset, id=id + 1))
         case "back":
+            if id <= 1:
+                return redirect(url_for("classify.classify", dataset=dataset, id=id))
             return redirect(url_for("classify.classify", dataset=dataset, id=id - 1))
         case _:
             return redirect(url_for("/"))
