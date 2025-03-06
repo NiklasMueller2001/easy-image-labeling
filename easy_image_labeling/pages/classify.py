@@ -12,8 +12,10 @@ from flask import (
 from easy_image_labeling.db.db import (
     sqlite_connection,
     get_lowest_image_id,
+    get_next_image_id,
+    get_previous_image_id,
     get_labels,
-    get_num_of_skipped_images,
+    get_skipped_image_ids,
     get_size_of_dataset,
     get_image_name,
     get_num_of_labelled_images,
@@ -43,13 +45,18 @@ def classify_next_image(dataset: str):
     with this image id. If all images in the dataset are labelled,
     redirect user to classification summary page.
     """
+    only_skipped = request.args.get("only_skipped", "False").lower() == "true"
     with sqlite_connection(current_app.config["DB_URL"]) as cur:
-        image_id = get_lowest_image_id(cur, dataset)
+        image_id = get_lowest_image_id(cur, dataset, only_skipped)
     if image_id is None:
         session["allowed_to_view_summary"] = True
         return redirect(url_for("classify.classification_summary", dataset=dataset))
 
-    return redirect(url_for("classify.classify", dataset=dataset, id=image_id))
+    return redirect(
+        url_for(
+            "classify.classify", dataset=dataset, id=image_id, only_skipped=only_skipped
+        )
+    )
 
 
 @bp.route("/classify/<dataset>/summary", methods=["GET"])
@@ -65,11 +72,14 @@ def classification_summary(dataset: str):
         flash("Manually accessing this page is forbidden.")
         return redirect(url_for("index"))
     with sqlite_connection(current_app.config["DB_URL"]) as cur:
-        g.num_skipped_images = get_num_of_skipped_images(cur, dataset)
+        skipped_image_ids = get_skipped_image_ids(cur, dataset)
+        g.num_skipped_images = len(skipped_image_ids)
         # Number of labelled images = Number of all images - Number of skipped images,
         # only works if there are no unlabelled images in the dataset
         g.num_labelled_images = get_size_of_dataset(cur, dataset) - g.num_skipped_images
-    return render_template("classification_summary.html", dataset=dataset)
+    return render_template(
+        "classification_summary.html", dataset=dataset, only_skipped=True
+    )
 
 
 @bp.route("/classify/<dataset>/<id>", methods=["POST", "GET"])
@@ -78,6 +88,7 @@ def classify(dataset: str, id: int):
     Render html template for displaying one image from given Dataset
     and DatasetID and form for labelling said image.
     """
+    only_skipped = request.args.get("only_skipped", "False").lower() == "true"
     with sqlite_connection(current_app.config["DB_URL"]) as cur:
         dataset_labels = get_labels(cur, dataset)
         num_labelled_images = get_num_of_labelled_images(cur, dataset)
@@ -93,6 +104,7 @@ def classify(dataset: str, id: int):
         image_id=id,
         num_labelled=num_labelled_images,
         num_total=total_num_images,
+        only_skipped=only_skipped,
     )
 
 
@@ -102,6 +114,7 @@ def submit_classification(dataset: str, id: int):
     Process the submitted form, update image label in the database, and
     load the next image.
     """
+    only_skipped = request.args.get("only_skipped", "False").lower() == "true"
     multi_button_form = MutliButtonForm()
     id = int(id)
     if request.method == "POST":
@@ -112,13 +125,21 @@ def submit_classification(dataset: str, id: int):
 
         with sqlite_connection(current_app.config["DB_URL"]) as cur:
             set_image_label(cur, dataset, id, selected_label)
-            max_size = get_size_of_dataset(cur, dataset)
-            if id + 1 > max_size:
+            next_id = get_next_image_id(cur, dataset, id, only_skipped)
+            if next_id is None:
                 return redirect(
-                    url_for("classify.classify_next_image", dataset=dataset)
+                    url_for(
+                        "classify.classify_next_image",
+                        dataset=dataset,
+                        only_skipped=only_skipped,
+                    )
                 )
 
-    return redirect(url_for("classify.classify", dataset=dataset, id=id + 1))
+    return redirect(
+        url_for(
+            "classify.classify", dataset=dataset, id=next_id, only_skipped=only_skipped
+        )
+    )
 
 
 @bp.route("/classify/<dataset>/reset", methods=["POST"])
@@ -134,21 +155,50 @@ def handle_move_button(dataset: str, id: int):
     Process the submitted form, update image label in the database, and
     load the next image.
     """
+    only_skipped = request.args.get("only_skipped", "False").lower() == "true"
     action = request.form.get("action")
     id = int(id)
     match action:
         case "skip":
             with sqlite_connection(current_app.config["DB_URL"]) as cur:
                 set_image_label(cur, dataset, id, None)
-                max_size = get_size_of_dataset(cur, dataset)
-                if id + 1 > max_size:
-                    return redirect(
-                        url_for("classify.classify_next_image", dataset=dataset)
+                next_id = get_next_image_id(cur, dataset, id, only_skipped)
+            if next_id is None:
+                return redirect(
+                    url_for(
+                        "classify.classify_next_image",
+                        dataset=dataset,
+                        only_skipped=only_skipped,
                     )
-            return redirect(url_for("classify.classify", dataset=dataset, id=id + 1))
+                )
+            return redirect(
+                url_for(
+                    "classify.classify",
+                    dataset=dataset,
+                    id=next_id,
+                    only_skipped=only_skipped,
+                )
+            )
         case "back":
-            if id <= 1:
-                return redirect(url_for("classify.classify", dataset=dataset, id=id))
-            return redirect(url_for("classify.classify", dataset=dataset, id=id - 1))
+            with sqlite_connection(current_app.config["DB_URL"]) as cur:
+                previous_id = get_previous_image_id(cur, dataset, id, only_skipped)
+            if previous_id is None:
+                return redirect(
+                    url_for(
+                        "classify.classify",
+                        dataset=dataset,
+                        id=id,
+                        only_skipped=only_skipped,
+                    )
+                )
+            return redirect(
+                url_for(
+                    "classify.classify",
+                    dataset=dataset,
+                    id=previous_id,
+                    only_skipped=only_skipped,
+                )
+            )
         case _:
+            flash("An unknown error occured.")
             return redirect(url_for("/"))

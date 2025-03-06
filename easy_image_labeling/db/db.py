@@ -61,16 +61,71 @@ def remove_dataset_from_db(cur: sqlite3.Cursor, dataset: str) -> None:
     cur.execute("DELETE FROM Label WHERE Dataset = ?", (dataset,))
 
 
-def get_lowest_image_id(cur: sqlite3.Cursor, dataset: str) -> int:
+def get_lowest_image_id(
+    cur: sqlite3.Cursor, dataset: str, only_skipped: bool = False
+) -> int:
     """
-    Rtrieve lowest DatasetId of row in Image table, that contains
-    unlabelled image.
+    Retrieve lowest DatasetId of row in Image table, that contains
+    unlabelled image. If `only_skipped` is True, retrieve the lowest
+    DatasetId of all skipped images in the dataset.
     """
-    min_dataset_id = cur.execute(
+    if only_skipped:
+        return cur.execute(
+            "SELECT MIN(DatasetID) FROM Image WHERE Dataset = ? AND LabelName = ?",
+            (dataset, "Unknown"),
+        ).fetchone()[0]
+
+    return cur.execute(
         "SELECT MIN(DatasetID) FROM Image WHERE Dataset = ? AND LabelName IS NULL",
         (dataset,),
     ).fetchone()[0]
-    return min_dataset_id
+
+
+def get_next_image_id(
+    cur: sqlite3.Cursor, dataset: str, dataset_id: int, only_skipped: bool = False
+) -> int | None:
+    """
+    The parameters `dataset` and `dataset_id`uniquely identify an image
+    in the Images table. If only skipped is False, return the lowest
+    larger DatasetID in the same dataset, i.e. DatasetID + 1 if that
+    entry exists or None if it does not exist. Else, return the lowest
+    larger DatasetID of a skipped image in the dataset. If no skipped
+    image exists, return None.
+    """
+    if only_skipped:
+        return cur.execute(
+            "SELECT MIN(DatasetID) FROM Image WHERE Dataset = ? AND LabelName = ? AND DatasetID > ?",
+            (dataset, "Unknown", dataset_id),
+        ).fetchone()[0]
+
+    max_size = get_size_of_dataset(cur, dataset)
+    if dataset_id + 1 > max_size:
+        return None
+    else:
+        return dataset_id + 1
+
+
+def get_previous_image_id(
+    cur: sqlite3.Cursor, dataset: str, dataset_id: int, only_skipped: bool = False
+) -> int | None:
+    """
+    The parameters `dataset` and `dataset_id`uniquely identify an image
+    in the Images table. If only skipped is False, return the highest
+    lower DatasetID in the same dataset, i.e. DatasetID - 1 if that
+    entry exists or None if it does not exist. Else, return the highest
+    lower DatasetID of a skipped image in the dataset. If no skipped
+    image exists, return None.
+    """
+    if only_skipped:
+        return cur.execute(
+            "SELECT MAX(DatasetID) FROM Image WHERE Dataset = ? AND LabelName = ? AND DatasetID < ?",
+            (dataset, "Unknown", dataset_id),
+        ).fetchone()[0]
+
+    if dataset_id <= 1:
+        return None
+    else:
+        return dataset_id - 1
 
 
 def get_image_name(cur: sqlite3.Cursor, dataset: str, dataset_id: int) -> int:
@@ -94,14 +149,14 @@ def get_size_of_dataset(cur: sqlite3.Cursor, dataset: str) -> int:
     ).fetchone()[0]
 
 
-def get_num_of_skipped_images(cur: sqlite3.Cursor, dataset: str) -> int:
+def get_skipped_image_ids(cur: sqlite3.Cursor, dataset: str) -> list[str]:
     """
-    Retrieve the number of skipped images in the specified dataset.
+    Retrieve the DatasetIDs of skipped images in the specified dataset.
     """
     return cur.execute(
-        "SELECT COUNT(*) FROM Image WHERE Dataset = ? AND LabelName = ?",
+        "SELECT DatasetID FROM Image WHERE Dataset = ? AND LabelName = ?",
         (dataset, "Unknown"),
-    ).fetchone()[0]
+    ).fetchall()
 
 
 def get_num_of_labelled_images(cur: sqlite3.Cursor, dataset: str) -> int:

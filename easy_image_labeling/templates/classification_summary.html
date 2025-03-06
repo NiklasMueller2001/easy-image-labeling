@@ -5,6 +5,8 @@
 {% endblock %}
 
 {% block content %}
-<p>You labellled {{ g.num_labelled_images }} images.</p>
+<p>You labelled {{ g.num_labelled_images }} images.</p>
 <p>You skipped {{ g.num_skipped_images }} images.</p>
+<p>Click <a href="{{ url_for('classify.classify_next_image', dataset=dataset, only_skipped=only_skipped) }}">here</a> to
+    label skipped images.</p>
 {% endblock %}
