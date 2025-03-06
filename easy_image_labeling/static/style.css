@@ -173,3 +173,11 @@ img {
     height: 100%;
     background-color: rgb(58, 166, 255);
 }
+
+.progress_marker {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background-color: red;
+}

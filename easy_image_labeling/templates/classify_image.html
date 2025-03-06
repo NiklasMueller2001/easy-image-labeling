@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 
+{% set image_id = image_id | int %}
 {% set num_labelled = num_labelled | int %}
 {% set num_total = num_total | int %}
-{% set ratio = (100 * (num_labelled / num_total)) | round(2) %}
+{% set current_image_pos = (100 * (image_id / num_total)) %}
+{% set total_progress = (100 * (num_labelled / num_total)) | round(2) %}
 
 {% block header %}
 <h1>Classify images of <b>{{ dataset }}</b> dataset</h1>
@@ -17,9 +19,10 @@
   </form>
   <div id="progress_container" , style="align-self: center;">
     <div id="progress_container_text">
-      <div id="progress_container_text_align_center"> {{ num_labelled }} / {{ num_total }} ({{ ratio }}%) </div>
+      <div id="progress_container_text_align_center"> {{ num_labelled }} / {{ num_total }} ({{ total_progress }}%) </div>
+      <li class="progress_marker" style='left: {{ current_image_pos }}%; list-style: none;'></li>
     </div>
-    <div id="loading_bar" style="width: {{ ratio }}%;"></div>
+    <div id="loading_bar" style="width: {{ total_progress }}%;"></div>
   </div>
 </div>
 <br>
@@ -28,7 +31,8 @@
 <hr>
 <br>
 
-<form method="POST" action="{{ url_for('classify.submit_classification', dataset=dataset, id=image_id, only_skipped=only_skipped) }}">
+<form method="POST"
+  action="{{ url_for('classify.submit_classification', dataset=dataset, id=image_id, only_skipped=only_skipped) }}">
   {{ form.hidden_tag() }}
   <div style="display: flex; flex-wrap: wrap; justify-content: center;">
     {% for label_button in form.label_buttons %}
@@ -37,7 +41,8 @@
   </div>
   <br>
 </form>
-<form method="POST" action="{{ url_for('classify.handle_move_button', dataset=dataset, id=image_id, only_skipped=only_skipped) }}">
+<form method="POST"
+  action="{{ url_for('classify.handle_move_button', dataset=dataset, id=image_id, only_skipped=only_skipped) }}">
   {{ form.hidden_tag() }}
   <button type="submit" name="action" value="back" class="button back_button">Back</button>
   <button type="submit" name="action" value="skip" class="button skip_button">Skip</button>
