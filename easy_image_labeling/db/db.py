@@ -63,7 +63,7 @@ def remove_dataset_from_db(cur: sqlite3.Cursor, dataset: str) -> None:
 
 def get_lowest_image_id(cur: sqlite3.Cursor, dataset: str) -> int:
     """
-    Rtrieve lowest ImageId of row in Image table, that contains
+    Rtrieve lowest DatasetId of row in Image table, that contains
     unlabelled image.
     """
     min_dataset_id = cur.execute(
@@ -89,7 +89,7 @@ def get_size_of_dataset(cur: sqlite3.Cursor, dataset: str) -> int:
     Retrieve the totatl number of images in the specified dataset.
     """
     return cur.execute(
-        "SELECT MAX(ImageID) FROM Image WHERE Dataset = ?",
+        "SELECT MAX(DatasetID) FROM Image WHERE Dataset = ?",
         (dataset,),
     ).fetchone()[0]
 
