@@ -1,5 +1,10 @@
 import sqlite3
+from dataclasses import dataclass
 from contextlib import contextmanager
+
+
+LabeledImage = tuple[int, str, str]
+LabeledImageColumns = ["DatasetID", "ImageName", "LabelName"]
 
 
 @contextmanager
@@ -179,6 +184,18 @@ def get_labels(cur: sqlite3.Cursor, dataset: str) -> list[str]:
         (dataset,),
     ).fetchall()
     return list(map(lambda _tuple: _tuple[0], labels))
+
+
+def get_results_by_dataset(cur: sqlite3.Cursor, dataset: str) -> list[LabeledImage]:
+    """
+    Retrieve DatasetID, ImageName and LabelName columns of all images
+    belonging to the specified dataset ordered by the DatasetID column.
+    """
+    results = cur.execute(
+        "SELECT DatasetID, ImageName, LabelName FROM Image WHERE Dataset = ? ORDER BY DatasetID",
+        (dataset,),
+    ).fetchall()
+    return results
 
 
 def set_image_label(

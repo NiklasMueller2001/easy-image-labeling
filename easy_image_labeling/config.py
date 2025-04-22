@@ -8,6 +8,7 @@ class Config:
     DATASET_FOLDER = Path(__file__).parent / "static" / "datasets"
     DB_URL = Path(__file__).parent / "db" / "database.sqlite"
     DB_SCHEMA = Path(__file__).parent / "db" / "schema.sql"
+    UPLOAD_FOLDER = Path(__file__).parent / "uploads"
 
 
 class DevConfig(Config):

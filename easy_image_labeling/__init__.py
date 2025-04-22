@@ -3,6 +3,7 @@ from easy_image_labeling.config import DevConfig
 from easy_image_labeling.db.db import sqlite_connection
 from easy_image_labeling.pages import selection
 from easy_image_labeling.pages import classify
+from easy_image_labeling.pages import export
 from flask import Flask, current_app
 from easy_image_labeling.dataset_manager import Dataset, DatasetManager
 from pathlib import Path
@@ -13,6 +14,7 @@ def create_app() -> Flask:
     app.config.from_object(DevConfig)
     app.register_blueprint(selection.bp)
     app.register_blueprint(classify.bp)
+    app.register_blueprint(export.bp)
     app.jinja_env.filters["zip"] = zip
     try:
         os.makedirs(app.instance_path)

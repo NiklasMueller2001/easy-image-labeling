@@ -219,3 +219,15 @@ class RemoveMultipleDatasetsForm(FlaskForm):
         min_entries=0,
     )
     submit = SubmitField()
+
+
+class ExportLabelsForm(FlaskForm):
+    dataset_selection_field = SelectField(
+        "Select a dataset",
+        choices=[("", "Select a dataset")],
+    )
+    export_selection_field = SelectField(
+        "Export as",
+        choices=[("", "Select export ")],
+    )
+    submit = SubmitField()
