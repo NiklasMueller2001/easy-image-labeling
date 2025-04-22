@@ -9,6 +9,7 @@ from flask import (
     flash,
     send_from_directory,
 )
+from pathlib import Path
 from easy_image_labeling.forms import ExportLabelsForm
 from easy_image_labeling.db.db import sqlite_connection, get_results_by_dataset
 from easy_image_labeling.result_writers import write_to_csv, write_to_json
@@ -53,10 +54,17 @@ def download_file(dataset: str, export_format: str):
         results = get_results_by_dataset(cur, dataset)
 
     result_writers = {"csv": write_to_csv, "json": write_to_json}
-    upload_file_name = f"{dataset}_results.{export_format.lower()}"
-    print(upload_file_name)
     try:
-        result_writers[export_format.lower()](upload_file_name, results)
+        result_writers[export_format.lower()](results)
     except Exception as e:
         flash(f"Error while trying to fetch results:\n{e}")
-    return send_from_directory(current_app.config["UPLOAD_FOLDER"], upload_file_name)
+    return send_from_directory(
+        current_app.config["UPLOAD_FOLDER"],
+        current_app.config["UPLOAD_FILENAME"],
+        as_attachment=True,
+        download_name=str(
+            Path(f"{current_app.config["UPLOAD_FILENAME"]}_{dataset}").with_suffix(
+                f".{export_format.lower()}"
+            )
+        ),
+    )
