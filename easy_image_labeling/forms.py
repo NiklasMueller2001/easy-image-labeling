@@ -9,6 +9,7 @@ from wtforms import (
     Form,
     MultipleFileField,
     ValidationError,
+    SelectField,
     StringField,
     SubmitField,
 )
