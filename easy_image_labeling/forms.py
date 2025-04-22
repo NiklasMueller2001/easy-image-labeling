@@ -105,19 +105,14 @@ class ForbiddenWordValidator:
     not an excluded word.
     """
 
-    def __init__(self, excluded_words: list[str] | None = None) -> None:
+    def __init__(self, excluded_words: list[str]) -> None:
         """
         Parameters
         ----------
         field_name: str
             Set name of fields inside field list.
         """
-        if excluded_words is None:
-            self.excluded_words = [
-                "Unknown",  # Label name reserved for skipped images
-            ]
-        else:
-            self.excluded_words = excluded_words
+        self.excluded_words = excluded_words
 
     def __call__(self, form: Form, field: StringField) -> Any:
         _input = field.data
@@ -171,7 +166,7 @@ class LabelNameForm(FlaskForm):
             InputRequired(),
             Length(min=1, max=20),
             NoSpecialCharactersValidator(),
-            ForbiddenWordValidator(),
+            ForbiddenWordValidator(["Unknown"]),
         ],
     )
 
