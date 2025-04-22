@@ -38,10 +38,12 @@ def fetch_existing_datasets(app: Flask) -> None:
 def initialize_database(app: Flask) -> None:
     with app.app_context():
         db_path = current_app.config.get("DB_URL", None)
-        db_schema_path: Path = current_app.config.get("DB_SCHEMA", None)
-        for config in ("DB_URL", "DB_SCHEMA"):
-            if config is None:
-                raise RuntimeError(f"{config} missing in app config.")
+        db_schema_path: Path | None = current_app.config.get("DB_SCHEMA", None)
+        for parameter in ("DB_URL", "DB_SCHEMA"):
+            if current_app.config.get(parameter, None) is None:
+                raise RuntimeError(f"{parameter} missing in app config.")
+        if db_schema_path is None:
+            raise KeyError("DB_SCHEMA parameter is missing in app config.")
         if not db_schema_path.exists():
             raise RuntimeError(f"Database schema file {db_schema_path} does not exist.")
         with sqlite_connection(db_path) as cur:
