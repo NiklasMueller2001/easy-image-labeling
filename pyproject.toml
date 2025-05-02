@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "easy_image_labeling"
-author = [
+authors = [
     {name = "Niklas Müller", email = "n.mueller@medienagentur24.eu"},
 ]
 description = "A simple Flask-based web app for labeling image datasets by uploading and assigning images to user-defined categories."
