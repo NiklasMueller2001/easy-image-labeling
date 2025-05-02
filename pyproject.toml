@@ -10,7 +10,7 @@ authors = [
 ]
 description = "A simple Flask-based web app for labeling image datasets by uploading and assigning images to user-defined categories."
 readme = "README.md"
-requires-python = "==3.13"
+requires-python = ">=3.13"
 keywords = ["one", "two"]
 license = "BSD-3-Clause"
 classifiers = [
@@ -23,3 +23,6 @@ dependencies = [
     "waitress",
 ]
 dynamic = ["version"]
+
+[tool.setuptools.dynamic]
+version = {attr = "easy_image_labeling.__version__"}
