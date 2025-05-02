@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 
 [project]
-name = easy_image_labeling
+name = "easy_image_labeling"
 author = [
     {name = "Niklas Müller", email = "n.mueller@medienagentur24.eu"},
 ]
