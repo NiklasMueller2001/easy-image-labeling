@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = easy_image_labeling
+author = [
+    {name = "Niklas Müller", email = "n.mueller@medienagentur24.eu"},
+]
+description = "A simple Flask-based web app for labeling image datasets by uploading and assigning images to user-defined categories."
+readme = "README.md"
+requires-python = "==3.13"
+keywords = ["one", "two"]
+license = "BSD-3-Clause"
+classifiers = [
+    "Framework :: Flask",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "flask",
+    "Flask-WTF",
+    "waitress",
+]
+dynamic = ["version"]
