@@ -24,5 +24,9 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+[project.scripts]
+start-app = "easy_image_labeling.cli:start"
+stop-app = "easy_image_labeling.cli:stop"
+
 [tool.setuptools.dynamic]
 version = {attr = "easy_image_labeling.__version__"}
