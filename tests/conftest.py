@@ -1,11 +1,44 @@
 import pytest
+import random
 import sqlite3
+import string
+import pathlib
 
 from pathlib import Path
 
 
 DB_SCHEMA_PATH = Path(__file__).parents[1] / "easy_image_labeling" / "db" / "schema.sql"
 DB_PATH = Path(__file__).parent / "test_db.sqlite"
+
+
+def pytest_configure():
+    """
+    Create temporary secret.env file to store CRSF secret key for
+    flask. This is function called automatically by pytest before
+    testing code is executed.
+    """
+
+    random_string = "".join(
+        random.SystemRandom().choice(string.ascii_uppercase + string.digits)
+        for _ in range(20)
+    )
+    secret_env_file = pathlib.Path(__file__).parent.parent / "secret.env"
+    # Store information about if env file already existed in state of this function object
+    pytest_configure.env_file_existed = secret_env_file.is_file()
+    if not pytest_configure.env_file_existed:
+        secret_env_file.touch()
+        secret_env_file.write_text(random_string, encoding="utf-8")
+
+
+def pytest_unconfigure():
+    """
+    Clean up temporary secret.env file, created in pytest_configure.
+    """
+
+    # Only remove env file if it has NOT already existed before pytest_configure was called
+    if not pytest_configure.env_file_existed:
+        secret_env_file = pathlib.Path(__file__).parent.parent / "secret.env"
+        secret_env_file.unlink()
 
 
 @pytest.fixture()
