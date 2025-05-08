@@ -11,7 +11,7 @@ from flask import (
 )
 from easy_image_labeling.db.db import (
     sqlite_connection,
-    get_lowest_image_id,
+    get_lowest_dataset_id,
     get_next_image_id,
     get_previous_image_id,
     get_labels,
@@ -47,14 +47,14 @@ def classify_next_image(dataset: str):
     """
     only_skipped = request.args.get("only_skipped", "False").lower() == "true"
     with sqlite_connection(current_app.config["DB_URL"]) as cur:
-        image_id = get_lowest_image_id(cur, dataset, only_skipped)
-    if image_id is None:
+        dataset_id = get_lowest_dataset_id(cur, dataset, only_skipped)
+    if dataset_id is None:
         session["allowed_to_view_summary"] = True
         return redirect(url_for("classify.classification_summary", dataset=dataset))
 
     return redirect(
         url_for(
-            "classify.classify", dataset=dataset, id=image_id, only_skipped=only_skipped
+            "classify.classify", dataset=dataset, id=dataset_id, only_skipped=only_skipped
         )
     )
 

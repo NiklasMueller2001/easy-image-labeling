@@ -2,7 +2,7 @@ from easy_image_labeling.db.db import (
     insert_labels,
     bulk_insert_images,
     remove_dataset_from_db,
-    get_lowest_image_id,
+    get_lowest_dataset_id,
 )
 
 import random
@@ -113,7 +113,7 @@ def test_remove_dataset_from_db(get_test_db, add_dataset, add_labels):
     )
 
 
-def test_get_lowest_image_id(get_test_db, fill_db):
+def test_get_lowest_dataset_id(get_test_db, fill_db):
     """
     GIVEN a database with 2 datasets and corresponding labels
     WHEN the lowest unlabeled image id for a datast is retrieved
@@ -125,7 +125,7 @@ def test_get_lowest_image_id(get_test_db, fill_db):
     # labels such that first unlabeled entry in first dataset has
     # DatasetID=4.
     fill_db([[1, 2, 3, 10, 11, 15], [4, 6, 8, 13], [16, 17, 18]])
-    lowest_image_id = get_lowest_image_id(get_test_db, "Dataset1")
+    lowest_image_id = get_lowest_dataset_id(get_test_db, "Dataset1")
     assert lowest_image_id == 4
 
 
@@ -142,5 +142,5 @@ def test_get_lowest_skipped_image_id(get_test_db, fill_db):
     fill_db(None, [15, 17, 19])
     label_data_before_test = get_test_db.execute("SELECT * FROM Image").fetchall()
     print(label_data_before_test)
-    lowest_image_id = get_lowest_image_id(get_test_db, "Dataset2", only_skipped=True)
+    lowest_image_id = get_lowest_dataset_id(get_test_db, "Dataset2", only_skipped=True)
     assert lowest_image_id == 4

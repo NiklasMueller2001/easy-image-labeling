@@ -29,7 +29,6 @@ def insert_labels(cur: sqlite3.Cursor, dataset: str, labels: list[str]) -> None:
     dataset_ids = list(range(1, len(labels) + 1))
     dataset_name_list = [dataset] * len(labels)
     data = list(zip(dataset_name_list, labels, dataset_ids))
-    print(data)
     cur.executemany(
         "INSERT INTO Label (Dataset, LabelName, DatasetID) VALUES (?, ?, ?)",
         data,
@@ -66,7 +65,7 @@ def remove_dataset_from_db(cur: sqlite3.Cursor, dataset: str) -> None:
     cur.execute("DELETE FROM Label WHERE Dataset = ?", (dataset,))
 
 
-def get_lowest_image_id(
+def get_lowest_dataset_id(
     cur: sqlite3.Cursor, dataset: str, only_skipped: bool = False
 ) -> int:
     """
@@ -90,8 +89,8 @@ def get_next_image_id(
     cur: sqlite3.Cursor, dataset: str, dataset_id: int, only_skipped: bool = False
 ) -> int | None:
     """
-    The parameters `dataset` and `dataset_id`uniquely identify an image
-    in the Images table. If only skipped is False, return the lowest
+    The parameters `dataset` and `dataset_id` uniquely identify an image
+    in the Image table. If only skipped is False, return the lowest
     larger DatasetID in the same dataset, i.e. DatasetID + 1 if that
     entry exists or None if it does not exist. Else, return the lowest
     larger DatasetID of a skipped image in the dataset. If no skipped
