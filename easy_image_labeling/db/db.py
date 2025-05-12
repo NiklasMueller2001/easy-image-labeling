@@ -85,7 +85,7 @@ def get_lowest_dataset_id(
     ).fetchone()[0]
 
 
-def get_next_image_id(
+def get_next_dataset_id(
     cur: sqlite3.Cursor, dataset: str, dataset_id: int, only_skipped: bool = False
 ) -> int | None:
     """
@@ -109,11 +109,11 @@ def get_next_image_id(
         return dataset_id + 1
 
 
-def get_previous_image_id(
+def get_previous_dataset_id(
     cur: sqlite3.Cursor, dataset: str, dataset_id: int, only_skipped: bool = False
 ) -> int | None:
     """
-    The parameters `dataset` and `dataset_id`uniquely identify an image
+    The parameters `dataset` and `dataset_id` uniquely identify an image
     in the Images table. If only skipped is False, return the highest
     lower DatasetID in the same dataset, i.e. DatasetID - 1 if that
     entry exists or None if it does not exist. Else, return the highest

@@ -12,8 +12,8 @@ from flask import (
 from easy_image_labeling.db.db import (
     sqlite_connection,
     get_lowest_dataset_id,
-    get_next_image_id,
-    get_previous_image_id,
+    get_next_dataset_id,
+    get_previous_dataset_id,
     get_labels,
     get_skipped_image_ids,
     get_size_of_dataset,
@@ -54,7 +54,10 @@ def classify_next_image(dataset: str):
 
     return redirect(
         url_for(
-            "classify.classify", dataset=dataset, id=dataset_id, only_skipped=only_skipped
+            "classify.classify",
+            dataset=dataset,
+            id=dataset_id,
+            only_skipped=only_skipped,
         )
     )
 
@@ -125,7 +128,7 @@ def submit_classification(dataset: str, id: int):
 
         with sqlite_connection(current_app.config["DB_URL"]) as cur:
             set_image_label(cur, dataset, id, selected_label)
-            next_id = get_next_image_id(cur, dataset, id, only_skipped)
+            next_id = get_next_dataset_id(cur, dataset, id, only_skipped)
             if next_id is None:
                 return redirect(
                     url_for(
@@ -162,7 +165,7 @@ def handle_move_button(dataset: str, id: int):
         case "skip":
             with sqlite_connection(current_app.config["DB_URL"]) as cur:
                 set_image_label(cur, dataset, id, None)
-                next_id = get_next_image_id(cur, dataset, id, only_skipped)
+                next_id = get_next_dataset_id(cur, dataset, id, only_skipped)
             if next_id is None:
                 return redirect(
                     url_for(
@@ -181,7 +184,7 @@ def handle_move_button(dataset: str, id: int):
             )
         case "back":
             with sqlite_connection(current_app.config["DB_URL"]) as cur:
-                previous_id = get_previous_image_id(cur, dataset, id, only_skipped)
+                previous_id = get_previous_dataset_id(cur, dataset, id, only_skipped)
             if previous_id is None:
                 return redirect(
                     url_for(
