@@ -3,8 +3,11 @@ from easy_image_labeling.db.db import (
     bulk_insert_images,
     remove_dataset_from_db,
     get_lowest_dataset_id,
+    get_next_dataset_id,
+    get_previous_dataset_id,
 )
 
+import pytest
 import random
 
 
@@ -116,9 +119,8 @@ def test_remove_dataset_from_db(get_test_db, add_dataset, add_labels):
 def test_get_lowest_dataset_id(get_test_db, fill_db):
     """
     GIVEN a database with 2 datasets and corresponding labels
-    WHEN the lowest unlabeled image id for a datast is retrieved
+    WHEN the lowest unlabeled dataset id for a datast is retrieved
     THEN check if the returned image id is the expected one.
-    correctly.
     """
 
     # Create database with 2 datasets and 3 label categories. Assign
@@ -132,15 +134,118 @@ def test_get_lowest_dataset_id(get_test_db, fill_db):
 def test_get_lowest_skipped_image_id(get_test_db, fill_db):
     """
     GIVEN a database with 2 datasets and corresponding labels
-    WHEN the lowest unlabeled image id for a datast is retrieved
+    WHEN the lowest unlabeled dataset id for a datast is retrieved
     THEN check if the returned image id is the expected one.
-    correctly.
     """
 
     # Create database with 2 datasets. Assign labels such that first
-    # skipped entry in second dataset has DatasetID=5.
+    # skipped entry in second dataset has DatasetID=4.
     fill_db(None, [15, 17, 19])
-    label_data_before_test = get_test_db.execute("SELECT * FROM Image").fetchall()
-    print(label_data_before_test)
     lowest_image_id = get_lowest_dataset_id(get_test_db, "Dataset2", only_skipped=True)
     assert lowest_image_id == 4
+
+
+@pytest.mark.parametrize(
+    "start_dataset_id, expected_next_id", [(0, 1), (5, 6), (11, None), (9, None)]
+)
+def test_get_next_dataset_id(
+    get_test_db, add_dataset, start_dataset_id, expected_next_id
+):
+    """
+    GIVEN a database with 2 datasets
+    WHEN the next dataset id starting from a random dataset id in dataset 1
+    THEN check if the returned image id is the expected one.
+    """
+
+    # Create database with 2 datasets.
+    dataset_name1 = "Dataset1"
+    dataset_name2 = "Dataset2"
+    add_dataset(dataset_name1, 10)
+    add_dataset(dataset_name2, 10)
+    next_lowest_image_id = get_next_dataset_id(
+        get_test_db, dataset_name1, start_dataset_id
+    )
+    assert next_lowest_image_id == expected_next_id
+
+
+@pytest.mark.parametrize(
+    "dataset, start_dataset_id, expected_next_id",
+    [
+        ("Dataset1", -1, 0),
+        ("Dataset1", 0, 1),
+        ("Dataset1", 1, 2),
+        ("Dataset1", 2, 8),
+        ("Dataset1", 9, None),
+        ("Dataset2", 0, 1),
+        ("Dataset2", 2, 4),
+        ("Dataset2", 8, None),
+    ],
+)
+def test_get_next_skipped_dataset_id(
+    get_test_db, fill_db, dataset, start_dataset_id, expected_next_id
+):
+    """
+    GIVEN a database with 2 datasets and some labeled images
+    WHEN the next skipped dataset id starting from a random dataset id in dataset 1
+    THEN check if the returned image id is the expected one.
+    """
+
+    # Create database with 2 datasets.
+    fill_db(None, [1, 2, 3, 9, 10, 11, 12, 15, 19])
+    next_lowest_image_id = get_next_dataset_id(
+        get_test_db, dataset, start_dataset_id, only_skipped=True
+    )
+    assert next_lowest_image_id == expected_next_id
+
+
+@pytest.mark.parametrize(
+    "start_dataset_id, expected_previous_id", [(9, 8), (6, 5), (-1, None), (0, None)]
+)
+def test_previous_dataset_id(
+    get_test_db, add_dataset, start_dataset_id, expected_previous_id
+):
+    """
+    GIVEN a database with 2 datasets
+    WHEN the previous dataset id starting from a random dataset id in dataset 1
+    THEN check if the returned image id is the expected one.
+    """
+
+    # Create database with 2 datasets.
+    dataset_name1 = "Dataset1"
+    dataset_name2 = "Dataset2"
+    add_dataset(dataset_name1, 10)
+    add_dataset(dataset_name2, 10)
+    previous_dataset_id = get_previous_dataset_id(
+        get_test_db, dataset_name2, start_dataset_id
+    )
+    assert previous_dataset_id == expected_previous_id
+
+
+@pytest.mark.parametrize(
+    "dataset, start_dataset_id, expected_next_id",
+    [
+        ("Dataset1", 0, None),
+        ("Dataset1", 1, 0),
+        ("Dataset1", 2, 1),
+        ("Dataset1", 8, 2),
+        ("Dataset1", 9, 8),
+        ("Dataset2", 1, 0),
+        ("Dataset2", 4, 1),
+        ("Dataset2", 8, 4),
+    ],
+)
+def test_get_previous_skipped_dataset_id(
+    get_test_db, fill_db, dataset, start_dataset_id, expected_next_id
+):
+    """
+    GIVEN a database with 2 datasets and some labeled images
+    WHEN the next skipped dataset id starting from a random dataset id in dataset 1
+    THEN check if the returned image id is the expected one.
+    """
+
+    # Create database with 2 datasets.
+    fill_db(None, [1, 2, 3, 9, 10, 11, 12, 15, 19])
+    next_lowest_image_id = get_previous_dataset_id(
+        get_test_db, dataset, start_dataset_id, only_skipped=True
+    )
+    assert next_lowest_image_id == expected_next_id
