@@ -29,3 +29,16 @@ class DevConfig(Config):
 
 class ProdConfig(Config):
     DEBUG = False
+
+
+class TestConfig:
+    with open(Path(__file__).parent.parent / "secret.env") as f:
+        SECRET_KEY = f.read()
+    DEBUG = False
+    MAX_FILE_SIZE = 5 * 1024 * 1024  # 10MB
+    DATASET_FOLDER = Path(__file__).parent.parent / "tests" / "datasets"
+    DB_URL = Path(__file__).parent.parent / "tests" / "test_db.sqlite"
+    DB_SCHEMA = Path(__file__).parent / "db" / "schema.sql"
+    UPLOAD_FOLDER = Path(__file__).parent.parent / "tests" / "uploads"
+    UPLOAD_FILENAME = "LabelingResults"
+    WTF_CSRF_ENABLED = False
