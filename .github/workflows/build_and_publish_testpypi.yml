@@ -20,7 +20,7 @@ jobs:
           pip install -r dev-requirements.txt
       - name: Test with pytest
         run: |
-          python -m pytest
+          python -m pytest -v
 
   build:
     name: Build distribution
