@@ -1,11 +1,11 @@
 import pytest
 import random
+import shutil
 import sqlite3
 import string
 import pathlib
 
 from pathlib import Path
-
 
 DB_SCHEMA_PATH = Path(__file__).parents[1] / "easy_image_labeling" / "db" / "schema.sql"
 DB_PATH = Path(__file__).parent / "test_db.sqlite"
@@ -188,3 +188,95 @@ def fill_db(add_dataset, add_labels, assign_label):
             assign_label("Unknown", id)
 
     yield _fill_db
+
+
+@pytest.fixture()
+def create_tmp_dataset(tmp_path):
+    """
+    Creates a temporary directory with 20 temporary image files.
+    """
+
+    def create_temp_dataset():
+        temp_dataset = tmp_path / "temp_dataset"
+        temp_dataset.mkdir()
+        for i in range(20):
+            image_file = temp_dataset / f"temp_image_{i}.jpg"
+            image_file.touch()
+
+    yield create_temp_dataset
+
+
+@pytest.fixture()
+def app():
+    """
+    Setup test app.
+    """
+
+    from easy_image_labeling import create_app
+
+    app = create_app(mode="testing")
+    app.config.update(
+        {
+            "TESTING": True,
+        }
+    )
+
+    yield app
+
+    # Remove added datasets in TestConfig["DATASET_FOLDER"]
+    temp_dataset_folder = app.config["DATASET_FOLDER"]
+    if isinstance(temp_dataset_folder, str) or isinstance(temp_dataset_folder, Path):
+        # Sanity check
+        def contains_exactly_one_folder(path: Path) -> bool:
+            if not path.is_dir():
+                return False
+
+            subdirs = [p for p in path.iterdir() if p.is_dir()]
+            return len(subdirs) == 1
+
+        def all_paths_start_with_temp(path: Path) -> bool:
+            return all(
+                map(
+                    lambda p: p.name.startswith("temp"),
+                    path.rglob("*"),
+                ),
+            )
+
+        if (
+            Path(temp_dataset_folder).is_dir()
+            and Path(temp_dataset_folder).is_relative_to(Path(__file__).parent)
+            and all_paths_start_with_temp(Path(temp_dataset_folder))
+            and contains_exactly_one_folder(Path(temp_dataset_folder))
+        ):
+            dataset = list(Path(temp_dataset_folder).glob("*"))[0]
+            shutil.rmtree(dataset)
+
+    # Remove added datasets in  TestConfig["UPLOAD_FOLDER"]
+    temp_upload_folder = app.config["UPLOAD_FOLDER"]
+    upload_filename = app.config["UPLOAD_FILENAME"]
+    if isinstance(temp_upload_folder, str) or isinstance(temp_upload_folder, Path):
+        if (
+            Path(temp_upload_folder).is_relative_to(Path(__file__).parent)
+            and (Path(temp_upload_folder) / upload_filename).is_file()
+        ):
+            (Path(temp_upload_folder) / upload_filename).unlink()
+
+    # Remove database
+    temp_db_path = app.config["DB_URL"]
+    if isinstance(temp_db_path, str) or isinstance(temp_db_path, Path):
+        if Path(temp_db_path).is_file() and Path(temp_db_path).is_relative_to(
+            Path(__file__).parent
+        ):
+            Path(temp_db_path).unlink()
+
+
+@pytest.fixture()
+def client(app):
+    """Create test client."""
+    return app.test_client()
+
+
+@pytest.fixture()
+def runner(app):
+    """Create test app runner."""
+    return app.test_cli_runner()
