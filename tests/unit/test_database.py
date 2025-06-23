@@ -80,7 +80,6 @@ def test_remove_dataset_from_db(get_test_db, add_dataset, add_labels):
     GIVEN a database with 2 datasets and corresponding labels
     WHEN 1 dataset is removed from the database
     THEN check if the correct database and labels were removed.
-    correctly.
     """
 
     # Add datasets and labels to empty database (this is part of setup)

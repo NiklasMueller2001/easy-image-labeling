@@ -32,7 +32,7 @@ def export_results():
     return render_template("export_results.html", form=export_labels_form)
 
 
-@bp.route("/submit_export", methods=["POST", "GET"])
+@bp.route("/export/submit_export", methods=["POST", "GET"])
 def submit_export_results():
     if request.method == "POST":
         export_labels_form = ExportLabelsForm()
@@ -48,7 +48,7 @@ def submit_export_results():
     )
 
 
-@bp.route("/uploads/<dataset>/<export_format>", methods=["POST", "GET"])
+@bp.route("/export/uploads/<dataset>/<export_format>", methods=["POST", "GET"])
 def download_file(dataset: str, export_format: str):
     with sqlite_connection(current_app.config["DB_URL"]) as cur:
         results = get_results_by_dataset(cur, dataset)

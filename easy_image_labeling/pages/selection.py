@@ -27,12 +27,12 @@ from werkzeug.utils import secure_filename
 bp = Blueprint("config", __name__)
 
 
-@bp.route("/set_number_of_labels", methods=["GET", "POST"])
+@bp.route("/config/set_number_of_labels", methods=["GET", "POST"])
 def configure_labels():
     return render_template("class_number.html")
 
 
-@bp.route("/set_label_names", methods=["POST", "GET"])
+@bp.route("/config/set_label_names", methods=["POST", "GET"])
 def set_number_of_classes():
     if request.method == "POST":
         session["num_classes"] = int(request.form["number_of_classes"])
@@ -42,7 +42,7 @@ def set_number_of_classes():
     return render_template("class_names.html", form=label_names_form)
 
 
-@bp.route("/upload_dataset", methods=["POST", "GET"])
+@bp.route("/config/upload_dataset", methods=["POST", "GET"])
 def set_class_names():
     upload_form = UploadFolderForm()
     if request.method == "POST":
@@ -57,7 +57,7 @@ def set_class_names():
     return render_template("upload_dataset.html", form=upload_form)
 
 
-@bp.route("/", methods=["POST"])
+@bp.route("/config/upload_folder", methods=["POST"])
 def upload_folder():
     if request.method == "POST":
         upload_form = UploadFolderForm()
@@ -92,7 +92,7 @@ def upload_folder():
     return redirect(url_for("config.set_class_names"))
 
 
-@bp.route("/remove_datasets", methods=["POST", "GET"])
+@bp.route("/config/remove_datasets", methods=["POST", "GET"])
 def select_datasets_to_remove():
     remove_datasets_form = RemoveMultipleDatasetsForm()
     if request.method == "GET":
@@ -103,7 +103,7 @@ def select_datasets_to_remove():
     return render_template("remove_datasets.html", form=remove_datasets_form)
 
 
-@bp.route("/index", methods=["POST"])
+@bp.route("/config/index", methods=["POST"])
 def remove_datasets():
     remove_datasets_form = RemoveMultipleDatasetsForm()
     if request.method == "POST":

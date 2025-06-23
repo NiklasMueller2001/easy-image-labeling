@@ -8,7 +8,7 @@ from flask import Flask, current_app
 from easy_image_labeling.dataset_manager import Dataset, DatasetManager
 from pathlib import Path
 
-__version__ = "0.2.5"
+__version__ = "1.0.0"
 
 
 def create_app() -> Flask:
