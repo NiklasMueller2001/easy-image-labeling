@@ -4,11 +4,11 @@ from easy_image_labeling.db.db import sqlite_connection
 from easy_image_labeling.pages import selection
 from easy_image_labeling.pages import classify
 from easy_image_labeling.pages import export
-from flask import Flask, current_app
+from flask import Flask, current_app, render_template
 from easy_image_labeling.dataset_manager import Dataset, DatasetManager
 from pathlib import Path
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 
 def create_app() -> Flask:
@@ -24,6 +24,15 @@ def create_app() -> Flask:
         pass
     fetch_existing_datasets(app)
     initialize_database(app)
+
+    @app.route("/", methods=["POST", "GET"])
+    @app.route("/index", methods=["POST", "GET"])
+    def index():
+        # print(list(map(lambda data: data.address.stem, DatasetManager().managed_datasets)))
+        # dataset_name = session["datasets"][0]
+        # DatasetManager().remove(dataset_name)
+        return render_template("index.html")
+
     return app
 
 
