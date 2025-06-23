@@ -39,6 +39,8 @@ def submit_export_results():
         export_labels_form.process(request.form)
         dataset_to_export = export_labels_form.data["dataset_selection_field"]
         export_format = export_labels_form.data["export_selection_field"]
+        if not Path(current_app.config["UPLOAD_FOLDER"]).is_dir():
+            Path(current_app.config["UPLOAD_FOLDER"]).mkdir()
     return redirect(
         url_for(
             "export.download_file",
