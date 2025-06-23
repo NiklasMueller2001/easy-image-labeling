@@ -1,6 +1,17 @@
 import os
 from typing import Literal
-from easy_image_labeling.config import ProdConfig, DevConfig, TestConfig
+from easy_image_labeling.exceptions import MissingSecretEnvFile
+from easy_image_labeling.helper_functions import create_env_file_with_provided_key
+
+try:
+    from easy_image_labeling.config import ProdConfig, DevConfig, TestConfig
+except MissingSecretEnvFile as e:
+    print(e)
+    if input("Would you like to automatically create this file? (Y/n)\n") == "Y":
+        create_env_file_with_provided_key()
+        from easy_image_labeling.config import ProdConfig, DevConfig, TestConfig
+    else:
+        raise RuntimeError
 from easy_image_labeling.db.db import sqlite_connection
 from easy_image_labeling.pages import selection
 from easy_image_labeling.pages import classify
@@ -9,7 +20,7 @@ from flask import Flask, current_app, render_template
 from easy_image_labeling.dataset_manager import Dataset, DatasetManager
 from pathlib import Path
 
-__version__ = "1.0.2"
+__version__ = "1.1.0"
 
 
 def create_app(

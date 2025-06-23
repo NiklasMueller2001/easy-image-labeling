@@ -4,15 +4,16 @@ from easy_image_labeling.exceptions import MissingSecretEnvFile
 
 class Config:
     try:
-        with open("secret.env") as f:
+        with open(Path(__file__).parent.parent / "secret.env") as f:
             SECRET_KEY = f.read()
     except FileNotFoundError:
         raise MissingSecretEnvFile(
             "No 'secret.env' file found. This file is used to store"
             " your flask CSRF secret key. If this is your fist time"
-            " using easy_image_labeling you need to manually create"
-            " this file and insert your secret key. To learn more"
-            " about CSRF protection in flask you can visit"
+            " using easy_image_labeling you need to create this file"
+            f" at {(Path(__file__).parent.parent / "secret.env")}"
+            " and insert your secret key. To learn more about CSRF"
+            " protection in flask you can visit"
             " https://flask-wtf.readthedocs.io/en/0.15.x/csrf/."
         )
     MAX_FILE_SIZE = 5 * 1024 * 1024  # 10MB
