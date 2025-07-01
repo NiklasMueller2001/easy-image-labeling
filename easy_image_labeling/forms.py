@@ -181,7 +181,7 @@ class LabelNameFormContainer(FlaskForm):
     submit = SubmitField()
 
 
-class UploadFolderForm(FlaskForm):
+class UploadDatasetForm(FlaskForm):
     files = MultipleFileField(
         "Upload Files",
         validators=[
@@ -203,6 +203,19 @@ class UploadFolderForm(FlaskForm):
     submit = SubmitField("Upload Files")
 
 
+class UploadImagesForm(FlaskForm):
+    files = MultipleFileField(
+        "Upload Files",
+        validators=[
+            PictureFolderValidator(),
+            FileAllowed(
+                ["pdf", "jpg", "png"], "Only .png, .pdf or .jpg file types allowed!"
+            ),
+        ],
+    )
+    submit = SubmitField("Upload Files")
+
+
 class RemoveDatasetForm(FlaskForm):
     dataset_name = StringField("dataset_name", render_kw={"readonly": True})
     marked = BooleanField("remove", default=False)
@@ -215,6 +228,18 @@ class RemoveMultipleDatasetsForm(FlaskForm):
         min_entries=0,
     )
     submit = SubmitField()
+
+
+class EditDatasetForm(FlaskForm):
+    dataset_name = StringField("dataset_name", render_kw={"readonly": True})
+    add_images_button = SubmitField("Add images")
+    remove_images_button = SubmitField("Remove images")
+
+
+class SelectDatasetToEditForm(FlaskForm):
+    edit_dataset_forms = FieldList(
+        FormField(EditDatasetForm), "All Datasets", min_entries=0
+    )
 
 
 class ExportLabelsForm(FlaskForm):

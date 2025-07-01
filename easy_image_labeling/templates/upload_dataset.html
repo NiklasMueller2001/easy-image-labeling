@@ -7,17 +7,28 @@
 {% endblock %}
 
 {% block content %}
+{% if create_new_dataset %}
 <h2>Upload Folder</h2>
+{% else %}
+<h2>Upload Images to add to dataset "{{ dataset }}"</h2>
+{% endif %}
+
 {% from "_formhelpers.html" import render_field_errors %}
+{% if create_new_dataset %}
 <form method="POST" enctype="multipart/form-data" action="{{ url_for('config.upload_folder') }}">
+{{ render_field_errors(form.dataset_name) }}
+{% else %}
+<form method="POST" enctype="multipart/form-data" action="{{ url_for('config.add_images_to_dataset', dataset=dataset) }}">
+{% endif %}
     {{ form.hidden_tag() }}
     {{ render_field_errors(form.files) }}
-    {{ render_field_errors(form.dataset_name) }}
 
     <input type="file" id="fileInput" name="files" multiple webkitdirectory>    
     <ul id="fileList"></ul>
-    <p><b>Name your dataset</b></p>
-    {{ form.dataset_name }}<br><br>
+    {% if create_new_dataset %}
+        <p><b>Name your dataset</b></p>
+        {{ form.dataset_name }}<br><br>
+    {% endif %}
     {{ form.submit }}
 </form>
 

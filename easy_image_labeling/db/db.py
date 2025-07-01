@@ -36,7 +36,11 @@ def insert_labels(cur: sqlite3.Cursor, dataset: str, labels: list[str]) -> None:
 
 
 def bulk_insert_images(
-    cur: sqlite3.Cursor, dataset: str, image_names: list[str], chunk_size: int
+    cur: sqlite3.Cursor,
+    dataset: str,
+    image_names: list[str],
+    chunk_size: int,
+    start_dataset_index: int = 1,
 ) -> None:
     """
     Insert entire dataset of images into Image table in a chunked-wise
@@ -47,7 +51,9 @@ def bulk_insert_images(
         for i in range(0, len(data), chunk_size):
             yield data[i : i + chunk_size]
 
-    dataset_ids = list(range(1, len(image_names) + 1))
+    dataset_ids = list(
+        range(start_dataset_index, start_dataset_index + len(image_names))
+    )
     dataset_name_list = [dataset] * len(image_names)
     data = list(zip(dataset_name_list, image_names, dataset_ids))
     for chunked_data in chunk_data(data):
