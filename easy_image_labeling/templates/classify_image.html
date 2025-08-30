@@ -6,6 +6,10 @@
 {% set current_image_pos = (100 * (image_id / num_total)) %}
 {% set total_progress = (100 * (num_labelled / num_total)) | round(2) %}
 
+{% block title %}
+Label image
+{% endblock %}
+
 {% block header %}
 <h1>Classify images of <b>{{ dataset }}</b> dataset</h1>
 {% endblock %}

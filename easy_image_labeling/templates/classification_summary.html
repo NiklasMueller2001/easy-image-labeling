@@ -2,6 +2,10 @@
 
 {% set total_progress = (100 * (g.num_labelled_images / (g.num_labelled_images + g.num_skipped_images))) | round(2) %}
 
+{% block title %}
+Summary
+{% endblock %}
+
 {% block header %}
 <h1>Summary for dataset {{ dataset }}</h1>
 <hr>
