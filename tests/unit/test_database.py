@@ -64,7 +64,7 @@ def test_bulk_insert_images(get_test_db):
 
     # Check results
     data = get_test_db.execute("SELECT * FROM Image").fetchall()
-    total_ids, datasets, image_names, dataset_ids, labels = tuple(zip(*data))
+    total_ids, datasets, image_names, dataset_ids, labels, label_dates = tuple(zip(*data))
     assert total_ids == tuple(range(1, 21))
     assert datasets == tuple([dataset_name1] * 10 + [dataset_name2] * 10)
     assert image_names[: len(image_names1)] == tuple(image_names1)
@@ -73,6 +73,7 @@ def test_bulk_insert_images(get_test_db):
         list(range(1, len(image_names1) + 1)) + list(range(1, len(image_names2) + 1))
     )
     assert all(label == None for label in labels)
+    assert all(label_date == None for label_date in label_dates)
 
 
 def test_remove_dataset_from_db(get_test_db, add_dataset, add_labels):

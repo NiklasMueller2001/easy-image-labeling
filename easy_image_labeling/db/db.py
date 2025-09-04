@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 from dataclasses import dataclass
 from contextlib import contextmanager
 
@@ -210,16 +211,17 @@ def set_image_label(
     Set label column of image inside dataset with given dataset id to
     specified value. If no label is specified, set label to 'Unknown'.
     """
+    label_date = datetime.now()
     if label is None:
         label = "Unknown"  # Skipped images appear with label "Unknown" in database
     cur.execute(
-        "UPDATE IMAGE SET LabelName = ? WHERE Dataset = ? AND DatasetID = ?",
-        (label, dataset, dataset_id),
+        "UPDATE IMAGE SET (LabelName, LastLabelDate) = (?, ?) WHERE Dataset = ? AND DatasetID = ?",
+        (label, label_date, dataset, dataset_id),
     )
 
 
 def reset_dataset_labels(cur: sqlite3.Cursor, dataset: str) -> None:
     cur.execute(
-        "UPDATE IMAGE SET LabelName = NULL WHERE Dataset = ?",
+        "UPDATE IMAGE SET (LabelName, LastLabelDate) = (NULL, NULL) WHERE Dataset = ?",
         (dataset,),
     )

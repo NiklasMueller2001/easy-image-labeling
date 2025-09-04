@@ -5,8 +5,10 @@ CREATE TABLE
         ImageName TEXT NOT NULL,
         DatasetID INTEGER NOT NULL,
         LabelName TEXT NULL,
+        LastLabelDate INTEGER NULL,
         UNIQUE (Dataset, DatasetID),
         UNIQUE (Dataset, ImageName),
+        UNIQUE (Dataset, ImageName, LastLabelDate),
         FOREIGN KEY (LabelName) REFERENCES Label (LabelName)
     );
 

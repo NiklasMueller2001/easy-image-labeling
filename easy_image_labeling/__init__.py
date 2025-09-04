@@ -20,7 +20,7 @@ from flask import Flask, current_app, render_template
 from easy_image_labeling.dataset_manager import Dataset, DatasetManager
 from pathlib import Path
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 
 
 def create_app(
