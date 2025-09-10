@@ -17,10 +17,11 @@ from easy_image_labeling.pages import selection
 from easy_image_labeling.pages import classify
 from easy_image_labeling.pages import export
 from flask import Flask, current_app, render_template
+from .plotlydash.dashboard import initiatlize_dashboard
 from easy_image_labeling.dataset_manager import Dataset, DatasetManager
 from pathlib import Path
 
-__version__ = "1.3.0"
+__version__ = "2.0.0"
 
 
 def create_app(
@@ -39,6 +40,9 @@ def create_app(
         pass
     fetch_existing_datasets(app)
     initialize_database(app)
+    with app.app_context():
+        dash_app = initiatlize_dashboard(app, config)
+    setattr(app, "dash_app", dash_app)
 
     @app.route("/", methods=["POST", "GET"])
     @app.route("/index", methods=["POST", "GET"])

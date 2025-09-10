@@ -21,6 +21,9 @@ dependencies = [
     "flask",
     "Flask-WTF",
     "waitress",
+    "dash",
+    "dash-bootstrap-components",
+    "pandas",
 ]
 dynamic = ["version"]
 

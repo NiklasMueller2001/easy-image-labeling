@@ -1,6 +1,8 @@
 from pathlib import Path
 from easy_image_labeling.exceptions import MissingSecretEnvFile
 
+type AppConfig = type[DevConfig] | type[ProdConfig] | type[TestConfig]
+
 
 class Config:
     try:

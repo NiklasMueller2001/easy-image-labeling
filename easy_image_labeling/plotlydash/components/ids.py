@@ -1,0 +1,6 @@
+LAYOUT = "layout"
+URL = "url"
+DATA_STORE = "data-store"
+DATASET_DROPDOWN = "dataset-dropdown"
+PIE_CHART = "pie-chart"
+SIDEBAR = "sidebar"
