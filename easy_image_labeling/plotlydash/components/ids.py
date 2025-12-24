@@ -1,5 +1,5 @@
 LAYOUT = "layout"
-URL = "url"
+REGENERATE_BUTTON = "regenerate-button"
 DATA_STORE = "data-store"
 DATASET_DROPDOWN = "dataset-dropdown"
 PIE_CHART = "pie-chart"

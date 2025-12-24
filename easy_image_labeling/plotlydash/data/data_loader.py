@@ -9,15 +9,13 @@ from easy_image_labeling.db.db import sqlite_connection
 
 
 def init_load_data_callback(dash_app: Dash, db_path: Path):
-    @dash_app.callback(Output(ids.DATA_STORE, "data"), Input(ids.URL, "search"))
-    def load_image_metadata(search) -> str:
+    @dash_app.callback(
+        Output(ids.DATA_STORE, "data"), Input(ids.REGENERATE_BUTTON, "n_clicks")
+    )
+    def load_image_metadata(n) -> str:
         """Load image metadata SQLite database with pandas."""
 
-        if not search:
-            raise PreventUpdate
-
-        params = search.lstrip("?")
-        if "refresh" not in params:
+        if not n:
             raise PreventUpdate
 
         with sqlite_connection(db_path) as cur:

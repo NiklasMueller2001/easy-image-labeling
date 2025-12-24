@@ -1,21 +1,32 @@
+.page {
+    display: flex;
+    justify-content: center;
+}
+
+.content {
+    display: flex;
+    margin-top: 0.5rem;
+    margin-left: 16rem;
+    flex-direction: column;
+    align-items: center;
+}
+
 .sidebar {
     position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
     width: 16rem;
+    height: 100vh;
     padding: 2rem 1rem;
     background-color: #f8f9fa;
 }
 
-.content_style {
-    margin-left: 18rem;
-    margin-right: 2rem;
-    padding: 2rem 1rem;
+.regenerate_button {
+    width: 8rem;
 }
 
 .pie_chart {
-    margin-left: 30vw;
     height: 40vh;
     width: 40vw;
     align-items: center;

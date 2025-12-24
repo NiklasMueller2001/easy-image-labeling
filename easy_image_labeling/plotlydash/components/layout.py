@@ -1,15 +1,26 @@
 from dash import Dash, html, dcc
-from easy_image_labeling.plotlydash.components import ids
-from easy_image_labeling.plotlydash.components import sidebar
-from easy_image_labeling.plotlydash.components import pie_chart
+import dash_bootstrap_components as dbc
+from easy_image_labeling.plotlydash.components import (
+    ids,
+    sidebar,
+    pie_chart,
+)
 
 
 def render(app: Dash):
-    _location = dcc.Location(id=ids.URL, pathname="/analytics", refresh=False)
+    _button = dbc.Button(
+        "Reload data",
+        color="primary",
+        id=ids.REGENERATE_BUTTON,
+        n_clicks=1,
+        className="regenerate_button",
+    )
     _data_store = dcc.Store(id=ids.DATA_STORE, storage_type="session")
     _side_bar = sidebar.render(app)
     _pie_chart = pie_chart.render(app)
-    return html.Div(
-        [_location, _data_store, _side_bar, _pie_chart],
+    content = html.Div(
+        [_button, _data_store, _pie_chart],
         id=ids.LAYOUT,
+        className="content",
     )
+    return html.Div([_side_bar, content], className="page")

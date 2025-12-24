@@ -22,13 +22,13 @@ def render(app: Dash) -> html.Div:
             hole=0.5,
         )
         return html.Div(
-            [
-                html.Div(
-                    [html.H3("Class size distribution"), dcc.Graph(figure=fig)],
-                    className="pie_chart",
-                ),
-                html.Hr(className="horizontal_line"),
-            ],
+            html.Div(
+                [
+                    html.H3("Class size distribution"),
+                    dcc.Graph(figure=fig),
+                ],
+            ),
+            className="pie_chart",
             id=ids.PIE_CHART,
         )
 
