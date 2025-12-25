@@ -20,7 +20,10 @@ def init_load_data_callback(dash_app: Dash, db_path: Path):
 
         with sqlite_connection(db_path) as cur:
             data = pd.read_sql(
-                "SELECT * FROM Image",
+                """
+                SELECT *
+                FROM Image
+                """,
                 cur.connection,
                 dtype={
                     DataSchema.ImageId: int,
@@ -28,11 +31,15 @@ def init_load_data_callback(dash_app: Dash, db_path: Path):
                     DataSchema.ImageName: str,
                     DataSchema.DatasetID: int,
                     DataSchema.LabelName: str,
+                    DataSchema.LastLabelDate: str,
                 },
-            ).to_json()
+                parse_dates={DataSchema.LastLabelDate: r"%Y-%m-%d %H:%M:%S.%f"},
+            ).to_json(date_format="iso")
 
         return data
 
 
 def load_data_from_store(json: str) -> DataSource:
-    return DataSource(pd.read_json(StringIO(json)))
+    df = pd.read_json(StringIO(json))
+    df[DataSchema.LastLabelDate] = pd.to_datetime(df[DataSchema.LastLabelDate])
+    return DataSource(df)

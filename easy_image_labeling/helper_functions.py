@@ -1,4 +1,11 @@
+import calendar
+from datetime import date
 from pathlib import Path
+from typing import Literal, get_args
+
+TimeIntervals = Literal["day", "week", "month"]
+
+TimeIntervals_args = get_args(TimeIntervals)
 
 
 def create_env_file_with_provided_key():
@@ -17,3 +24,11 @@ def create_env_file_with_provided_key():
     with open(Path(__file__).parent.parent / "secret.env", "w") as f:
         f.write(secret_key)
     print("Successfully created secret.env file!")
+
+
+def _get_number_of_days_in_month(date: date) -> int:
+    """
+    Return number of days in month that the specified date belongs to.
+    """
+
+    return calendar.monthrange(year=date.year, month=date.month)[1]

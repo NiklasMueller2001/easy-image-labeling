@@ -4,6 +4,7 @@ from easy_image_labeling.plotlydash.components import (
     ids,
     sidebar,
     pie_chart,
+    progress_chart,
 )
 
 
@@ -18,8 +19,14 @@ def render(app: Dash):
     _data_store = dcc.Store(id=ids.DATA_STORE, storage_type="session")
     _side_bar = sidebar.render(app)
     _pie_chart = pie_chart.render(app)
+    _progress_chart = progress_chart.render(app)
     content = html.Div(
-        [_button, _data_store, _pie_chart],
+        [
+            _button,
+            _data_store,
+            _pie_chart,
+            _progress_chart,
+        ],
         id=ids.LAYOUT,
         className="content",
     )

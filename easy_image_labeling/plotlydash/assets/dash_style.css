@@ -20,6 +20,7 @@
     height: 100vh;
     padding: 2rem 1rem;
     background-color: #f8f9fa;
+    z-index: 999;
 }
 
 .regenerate_button {
@@ -28,12 +29,21 @@
 
 .pie_chart {
     height: 40vh;
-    width: 40vw;
-    align-items: center;
-    text-align: center;
-    font-size: auto;
+    width: 80vw;
 }
 
-.horizontal_line {
-    margin-left: 16rem;
+.progress_chart {
+    height: 40vh;
+    width: 80vw;
+}
+
+.no-hover {
+  pointer-events: none;
+}
+
+.no-hover:hover,
+.no-hover:focus,
+.no-hover:active {
+  background-color: inherit !important;
+  box-shadow: none !important;
 }

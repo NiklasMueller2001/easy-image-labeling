@@ -1,5 +1,6 @@
 import dash_bootstrap_components as dbc
 from dash import Dash, html, dcc, Input, Output
+from easy_image_labeling.helper_functions import TimeIntervals_args
 from easy_image_labeling.plotlydash.components import ids
 
 from easy_image_labeling.plotlydash.data.data_loader import load_data_from_store
@@ -25,6 +26,15 @@ def render(app: Dash) -> html.Div:
                 dbc.Nav(
                     [
                         html.A("Home", href="/", className="btn btn-primary"),
+                        html.P(
+                            "Select dataset",
+                            style={
+                                "margin-top": "0.5rem",
+                                "margin-bottom": "0rem",
+                                "box-shadow": None,
+                            },
+                            className="btn btn-secondary no-hover",
+                        ),
                         dcc.Dropdown(
                             options=[
                                 {"label": value, "value": value}
@@ -33,6 +43,28 @@ def render(app: Dash) -> html.Div:
                             multi=False,
                             id=ids.DATASET_DROPDOWN,
                             placeholder="Select dataset...",
+                        ),
+                        html.P(
+                            "Group label dates",
+                            style={
+                                "margin-top": "0.5rem",
+                                "margin-bottom": "0rem",
+                                "box-shadow": None,
+                            },
+                            className="btn btn-secondary no-hover",
+                        ),
+                        dcc.Dropdown(
+                            options=[
+                                {
+                                    "label": time_interval.capitalize(),
+                                    "value": time_interval,
+                                }
+                                for time_interval in TimeIntervals_args
+                            ],
+                            multi=False,
+                            value="day",
+                            id=ids.TIME_INTERVAL_DROPDOWN,
+                            placeholder="Select time interval...",
                         ),
                     ],
                     vertical=True,  # well, that means not horizontically
