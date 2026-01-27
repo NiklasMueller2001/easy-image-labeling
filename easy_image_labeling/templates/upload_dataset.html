@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
 {% block header %}
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <h1>{% block title %}Upload your dataset{% endblock %}</h1>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<h1>{% block title %}Upload your dataset{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
@@ -15,33 +15,187 @@
 
 {% from "_formhelpers.html" import render_field_errors %}
 {% if create_new_dataset %}
-<form method="POST" enctype="multipart/form-data" action="{{ url_for('config.upload_folder') }}">
-{{ render_field_errors(form.dataset_name) }}
+<form id="uploadForm" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    {{ render_field_errors(form.dataset_name) }}
+    <input type="file" id="fileInput" multiple webkitdirectory>
+    <p><b>Name your dataset</b></p>
+    {{ form.dataset_name }}<br><br>
+    {{ form.submit(id="createDsUploadBtn", type="button") }}
+</form>
+<script>
+    document
+        .getElementById("createDsUploadBtn")
+        .addEventListener("click", async () => {
+
+            const files = document.getElementById("fileInput").files;
+            const datasetName =
+                document.querySelector('[name="{{ form.dataset_name.name }}"]').value;
+            const csrfToken = getCSRFToken();
+
+            await uploadBatched({
+                files: files,
+                batchSize: 20,
+                uploadUrl: "{{ url_for('config.upload_folder') }}",
+
+                buildFormData: (batchFiles) => {
+                    const fd = new FormData();
+                    fd.append("dataset_name", datasetName);
+                    fd.append("csrf_token", csrfToken);
+                    batchFiles.forEach(f => fd.append("files", f));
+                    return fd;
+                },
+
+                onFailure: async (batchIndex, formData) => {
+                    const url = new URL("{{ url_for('config.dataset_upload_failed') }}", window.location.origin);
+                    url.searchParams.set("batch_idx", batchIndex);
+                    await fetch(url, {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    window.location.href = "{{ url_for('config.set_class_names') }}";
+                },
+
+                onComplete: async () => {
+                    window.location.href =
+                        "{{ url_for('config.upload_complete') }}";
+                }
+            });
+        });
+</script>
 {% else %}
-<form method="POST" enctype="multipart/form-data" action="{{ url_for('config.add_images_to_dataset', dataset=dataset) }}">
-{% endif %}
+<form method="POST" enctype="multipart/form-data">
     {{ form.hidden_tag() }}
     {{ render_field_errors(form.files) }}
-
-    <input type="file" id="fileInput" name="files" multiple webkitdirectory>    
-    <ul id="fileList"></ul>
-    {% if create_new_dataset %}
-        <p><b>Name your dataset</b></p>
-        {{ form.dataset_name }}<br><br>
-    {% endif %}
-    {{ form.submit }}
+    <input type="file" id="fileInput" multiple webkitdirectory>
+    {{ form.submit(id="AppendToDsUploadBtn", type="button") }}
 </form>
+<script>
+    document
+        .getElementById("AppendToDsUploadBtn")
+        .addEventListener("click", async () => {
+
+            const files = document.getElementById("fileInput").files;
+            const datasetName = "{{ dataset }}"
+            const csrfToken = getCSRFToken();
+
+            await uploadBatched({
+                files: files,
+                batchSize: 20,
+                uploadUrl: "{{ url_for('config.add_images_to_dataset', dataset=dataset) }}",
+
+                buildFormData: (batchFiles) => {
+                    const fd = new FormData();
+                    fd.append("dataset_name", datasetName);
+                    fd.append("csrf_token", csrfToken);
+                    batchFiles.forEach(f => fd.append("files", f));
+                    return fd;
+                },
+
+                onFailure: async (batchIndex, formData) => {
+                    const url = new URL("{{ url_for('config.append_to_dataset_upload_failed') }}", window.location.origin);
+                    url.searchParams.set("batch_idx", batchIndex);
+                    await fetch(url, {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    window.location.href = "{{ url_for('config.select_dataset_to_edit') }}";
+                },
+
+                onComplete: async () => {
+                    window.location.href =
+                        "{{ url_for('config.upload_complete') }}";
+                }
+            });
+        });
+</script>
+{% endif %}
+
+<div id="uploadProgressContainer" style="display: none;">
+    <progress id="uploadProgress" value="0" max="100" style="width: 80%;"></progress>
+    <p id="progressText">Waiting…</p>
+</div>
 
 <script>
-    document.getElementById("fileInput").addEventListener("change", function(event) {
-        let fileList = document.getElementById("fileList");
-        fileList.innerHTML = "";  // Clear list
-        
-        for (let file of event.target.files) {
-            let listItem = document.createElement("li");
-            listItem.textContent = file.webkitRelativePath;  // Show folder structure
-            fileList.appendChild(listItem);
-        }
-    });
+    function getCSRFToken() {
+        return document.querySelector('input[name="csrf_token"]').value;
+    }
 </script>
+
+<script>
+    async function uploadBatched({
+        files,
+        batchSize,
+        uploadUrl,
+        buildFormData,
+        onBatchSuccess,
+        onFailure,
+        onComplete
+    }) {
+        if (!files.length) {
+            alert("No files selected");
+            return;
+        }
+
+        const url = new URL(uploadUrl, window.location.origin);
+        const totalBatches = Math.ceil(files.length / batchSize);
+        const progressBar = document.getElementById("uploadProgress");
+        const progressText = document.getElementById("progressText");
+        const progressContainer = document.getElementById("uploadProgressContainer");
+
+        progressContainer.style.display = "block";
+        progressBar.value = 0;
+        progressBar.max = totalBatches;
+        progressText.textContent = `Uploading 0 / ${files.length} files`;
+
+        for (let i = 0; i < totalBatches; i++) {
+            const start = i * batchSize;
+            const end = start + batchSize;
+
+            const formData = buildFormData(
+                Array.from(files).slice(start, end),
+                i,
+                totalBatches
+            );
+
+            let response;
+            try {
+                url.searchParams.set("batch_idx", i);
+                response = await fetch(url.toString(), {
+                    method: "POST",
+                    body: formData
+                });
+            } catch (err) {
+                await onFailure(i, formData);
+                return;
+            }
+
+            if (!response.ok) {
+                await onFailure(i, formData);
+                return;
+            }
+
+            if (onBatchSuccess) {
+                await onBatchSuccess(i, response);
+            }
+
+            progressBar.value = i + 1;
+            if (i < totalBatches - 1) {
+                progressText.textContent =
+                    `Uploading ${(i + 1) * batchSize} / ${files.length} files`;
+            }
+            else {
+                progressText.textContent =
+                    `Uploading ${files.length} / ${files.length} files`;
+            }
+        }
+
+        if (onComplete) {
+            await onComplete();
+        }
+    };
+</script>
+
 {% endblock %}

@@ -21,7 +21,7 @@ from .plotlydash.dashboard import initiatlize_dashboard
 from easy_image_labeling.dataset_manager import Dataset, DatasetManager
 from pathlib import Path
 
-__version__ = "2.2.0"
+__version__ = "2.3.0"
 
 
 def create_app(

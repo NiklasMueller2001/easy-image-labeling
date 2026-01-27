@@ -1,6 +1,5 @@
 from typing import Any
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileAllowed
 from wtforms import (
     BooleanField,
     Field,
@@ -84,6 +83,7 @@ class NoSpecialCharactersValidator:
                 "§",
                 "^",
                 "°",
+                "#",
             ]
         else:
             self.excluded_characters = excluded_characters
@@ -131,7 +131,7 @@ class PictureFolderValidator:
 
     def __init__(self, allowed_extensions: tuple[str] | None = None) -> None:
         if allowed_extensions is None:
-            self.allowed_extensions = ("jpg", "png", "pdf")
+            self.allowed_extensions = ("jpg", "jpeg", "JPEG", "png", "pdf")
         else:
             self.allowed_extensions = allowed_extensions
 
@@ -184,20 +184,14 @@ class LabelNameFormContainer(FlaskForm):
 class UploadDatasetForm(FlaskForm):
     files = MultipleFileField(
         "Upload Files",
-        validators=[
-            PictureFolderValidator(),
-            FileAllowed(
-                ["pdf", "jpg", "png"], "Only .png, .pdf or .jpg file types allowed!"
-            ),
-        ],
+        validators=[PictureFolderValidator()],
     )
     dataset_name = StringField(
         "Dataset name",
         validators=[
             InputRequired(),
-            Length(min=1, max=20),
+            Length(min=1, max=30),
             NoSpecialCharactersValidator(),
-            DuplicateDatasetNameValidator(),
         ],
     )
     submit = SubmitField("Upload Files")
@@ -206,12 +200,7 @@ class UploadDatasetForm(FlaskForm):
 class UploadImagesForm(FlaskForm):
     files = MultipleFileField(
         "Upload Files",
-        validators=[
-            PictureFolderValidator(),
-            FileAllowed(
-                ["pdf", "jpg", "png"], "Only .png, .pdf or .jpg file types allowed!"
-            ),
-        ],
+        validators=[PictureFolderValidator()],
     )
     submit = SubmitField("Upload Files")
 

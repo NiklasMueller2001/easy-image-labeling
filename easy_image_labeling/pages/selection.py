@@ -1,4 +1,5 @@
 from easy_image_labeling.forms import (
+    DuplicateDatasetNameValidator,
     LabelNameFormContainer,
     UploadDatasetForm,
     UploadImagesForm,
@@ -35,13 +36,12 @@ def configure_labels():
     return render_template("class_number.html")
 
 
-@bp.route("/config/set_label_names", methods=["POST", "GET"])
+@bp.route("/config/set_label_names", methods=["POST"])
 def set_number_of_classes():
-    if request.method == "POST":
-        session["num_classes"] = int(request.form["number_of_classes"])
-        label_names_form = LabelNameFormContainer()
-        for _ in range(session["num_classes"]):
-            label_names_form.label_names.append_entry()
+    session["num_classes"] = int(request.form["number_of_classes"])
+    label_names_form = LabelNameFormContainer()
+    for _ in range(session["num_classes"]):
+        label_names_form.label_names.append_entry()
     return render_template("class_names.html", form=label_names_form)
 
 
@@ -65,6 +65,7 @@ def set_class_names():
 @bp.route("/config/upload_folder", methods=["POST"])
 def upload_folder():
     if request.method == "POST":
+        batch_idx = request.args.get("batch_idx", type=int)
         upload_form = UploadDatasetForm()
         upload_form.process(request.form)
         uploaded_files = request.files.getlist("files")
@@ -74,10 +75,14 @@ def upload_folder():
             return render_template("index.html")
         dataset_name = secure_filename(dataset_name)
         upload_form.files.data = uploaded_files
-        if upload_form.validate_on_submit():
-            upload_path = current_app.config["DATASET_FOLDER"] / dataset_name
-            if not Path(upload_path).exists():
-                Path(upload_path).mkdir(parents=True)  # Ensure upload directory exists
+        upload_path = Path(current_app.config["DATASET_FOLDER"] / dataset_name)
+        # In first batch create new dataset and labels in database
+        if batch_idx in (0, None):
+            extra_validators = {"dataset_name": [DuplicateDatasetNameValidator()]}
+            if not upload_form.validate_on_submit(extra_validators=extra_validators):
+                return "", 400
+            if not upload_path.exists():
+                upload_path.mkdir(parents=True)  # Ensure upload directory exists
             image_filenames = []
             for file in upload_form.files.data:
                 filename = secure_filename(file.filename)
@@ -89,13 +94,53 @@ def upload_folder():
             with sqlite_connection(current_app.config["DB_URL"]) as cur:
                 insert_labels(cur, dataset_name, list(session["label_names"].values()))
                 bulk_insert_images(cur, dataset_name, image_filenames, chunk_size=50)
-            flash("Files uploaded successfully!", "success")
-            return redirect(url_for("index"))
-        for field in upload_form.errors:
-            if upload_form.errors[field]:
-                for error in upload_form.errors[field]:
-                    flash(error)
+            return "", 204
+        # For subsequent batches omit saving dataset and labels
+        else:
+            if not (upload_path.exists() and upload_form.validate_on_submit()):
+                return "", 400
+            image_filenames = []
+            for file in upload_form.files.data:
+                filename = secure_filename(file.filename)
+                image_filenames.append(filename)
+                file.save(upload_path / filename)
+                file.close()
+            with sqlite_connection(current_app.config["DB_URL"]) as cur:
+                size_of_dataset = get_size_of_dataset(cur, dataset_name)
+                bulk_insert_images(
+                    cur,
+                    dataset_name,
+                    image_filenames,
+                    chunk_size=50,
+                    start_dataset_index=size_of_dataset + 1,
+                )
+            return "", 204
+
     return redirect(url_for("config.set_class_names"))
+
+
+@bp.route("/config/upload_complete", methods=["GET"])
+def upload_complete():
+    flash("Files uploaded successfully!", "success")
+    return redirect(url_for("index"))
+
+
+@bp.route("/config/dataset_upload_failed", methods=["POST"])
+def dataset_upload_failed():
+    batch_idx = request.args.get("batch_idx", type=int)
+    upload_form = UploadDatasetForm()
+    upload_form.process(request.form)
+    uploaded_files = request.files.getlist("files")
+    upload_form.files.data = uploaded_files
+    extra_validators = None
+    if batch_idx in (0, None):
+        extra_validators = {"dataset_name": [DuplicateDatasetNameValidator()]}
+    upload_form.validate(extra_validators=extra_validators)
+    for field in upload_form.errors:
+        if upload_form.errors[field]:
+            for error in upload_form.errors[field]:
+                flash(error, "error")
+    return "", 204
 
 
 @bp.route("/config/remove_datasets", methods=["POST", "GET"])
@@ -136,28 +181,28 @@ def select_dataset_to_edit():
     return render_template("dataset_selection.html", form=edit_datasets_form)
 
 
-@bp.route("/config/edit_dataset", methods=["GET", "POST"])
+@bp.route("/config/edit_dataset", methods=["POST"])
 def edit_dataset():
     edit_datasets_form = SelectDatasetToEditForm()
-    if request.method == "POST":
-        edit_datasets_form.process(request.form)
-        if edit_datasets_form.validate_on_submit():
-            for input_form_data in edit_datasets_form.edit_dataset_forms.data:
-                if input_form_data["add_images_button"]:
-                    upload_form = UploadImagesForm()
-                    return render_template(
-                        "upload_dataset.html",
-                        form=upload_form,
+    edit_datasets_form.process(request.form)
+    if edit_datasets_form.validate_on_submit():
+        for input_form_data in edit_datasets_form.edit_dataset_forms.data:
+            if input_form_data["add_images_button"]:
+                upload_form = UploadImagesForm()
+                return render_template(
+                    "upload_dataset.html",
+                    form=upload_form,
+                    dataset=input_form_data["dataset_name"],
+                )
+            elif input_form_data["remove_images_button"]:
+                return redirect(
+                    url_for(
+                        "config.remove_images_from_dataset",
                         dataset=input_form_data["dataset_name"],
                     )
-                if input_form_data["remove_images_button"]:
-                    return redirect(
-                        url_for(
-                            "config.remove_images_from_dataset",
-                            dataset=input_form_data["dataset_name"],
-                        )
-                    )
-    return redirect(url_for("config.edit_dataset"))
+                )
+    flash("Unknown error.")
+    return redirect(url_for("index"))
 
 
 @bp.route("/config/add_images_to_dataset/<dataset>", methods=["POST"])
@@ -200,15 +245,23 @@ def add_images_to_dataset(dataset: str):
                         chunk_size=50,
                         start_dataset_index=size_of_dataset + 1,
                     )
-                flash("Files uploaded successfully!", "success")
-            else:
-                flash("Failed to upload any files.", "error")
-            return redirect(url_for("index"))
-        for field in upload_form.errors:
-            if upload_form.errors[field]:
-                for error in upload_form.errors[field]:
-                    flash(error)
+                return "", 204
+            return "", 400
     return redirect(url_for("config.select_dataset_to_edit"))
+
+
+@bp.route("/config/append_to_dataset_upload_failed", methods=["POST"])
+def append_to_dataset_upload_failed():
+    upload_form = UploadImagesForm()
+    upload_form.process(request.form)
+    uploaded_files = request.files.getlist("files")
+    upload_form.files.data = uploaded_files
+    upload_form.validate()
+    for field in upload_form.errors:
+        if upload_form.errors[field]:
+            for error in upload_form.errors[field]:
+                flash(error, "error")
+    return "", 204
 
 
 @bp.route("/config/remove_images_from_dataset/<dataset>", methods=["GET"])

@@ -18,7 +18,7 @@ class Config:
             " protection in flask you can visit"
             " https://flask-wtf.readthedocs.io/en/0.15.x/csrf/."
         )
-    MAX_FILE_SIZE = 5 * 1024 * 1024  # 10MB
+    MAX_CONTENT_LENGTH = 250 * (1024)**2 # Max upload request size 250MB
     DATASET_FOLDER = Path(__file__).parent / "static" / "datasets"
     DB_URL = Path(__file__).parent / "db" / "database.sqlite"
     DB_SCHEMA = Path(__file__).parent / "db" / "schema.sql"
@@ -38,7 +38,7 @@ class TestConfig:
     with open(Path(__file__).parent.parent / "secret.env") as f:
         SECRET_KEY = f.read()
     DEBUG = False
-    MAX_FILE_SIZE = 5 * 1024 * 1024  # 10MB
+    MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
     DATASET_FOLDER = Path(__file__).parent.parent / "tests" / "datasets"
     DB_URL = Path(__file__).parent.parent / "tests" / "test_db.sqlite"
     DB_SCHEMA = Path(__file__).parent / "db" / "schema.sql"

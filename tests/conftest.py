@@ -196,11 +196,31 @@ def create_tmp_dataset(tmp_path):
     Creates a temporary directory with 20 temporary image files.
     """
 
-    def create_temp_dataset():
-        temp_dataset = tmp_path / "temp_dataset"
+    def create_temp_dataset(dset_name: str):
+        temp_dataset = tmp_path / ("temp_" + dset_name)
         temp_dataset.mkdir()
         for i in range(20):
             image_file = temp_dataset / f"temp_image_{i}.jpg"
+            image_file.touch()
+
+    yield create_temp_dataset
+
+
+@pytest.fixture()
+def create_unsupported_test_dataset(tmp_path):
+    """
+    Creates a temporary directory with 20 temporary image files, with
+    some of them having unsupported file extensions.
+    """
+
+    def create_temp_dataset(dset_name: str):
+        temp_dataset = tmp_path / ("temp_" + dset_name)
+        temp_dataset.mkdir()
+        for i in range(5):
+            image_file = temp_dataset / f"temp_image_{i}.jpg"
+            image_file.touch()
+        for i in range(5, 10):
+            image_file = temp_dataset / f"temp_image_{i}.txt"
             image_file.touch()
 
     yield create_temp_dataset
@@ -225,14 +245,7 @@ def app():
 
     # Remove added datasets in TestConfig["DATASET_FOLDER"]
     temp_dataset_folder = app.config["DATASET_FOLDER"]
-    if isinstance(temp_dataset_folder, str) or isinstance(temp_dataset_folder, Path):
-        # Sanity check
-        def contains_exactly_one_folder(path: Path) -> bool:
-            if not path.is_dir():
-                return False
-
-            subdirs = [p for p in path.iterdir() if p.is_dir()]
-            return len(subdirs) == 1
+    if isinstance(temp_dataset_folder, (str, Path)):
 
         def all_paths_start_with_temp(path: Path) -> bool:
             return all(
@@ -246,10 +259,11 @@ def app():
             Path(temp_dataset_folder).is_dir()
             and Path(temp_dataset_folder).is_relative_to(Path(__file__).parent)
             and all_paths_start_with_temp(Path(temp_dataset_folder))
-            and contains_exactly_one_folder(Path(temp_dataset_folder))
         ):
-            dataset = list(Path(temp_dataset_folder).glob("*"))[0]
-            shutil.rmtree(dataset)
+            datasets = Path(temp_dataset_folder).glob("*")
+            for dataset in datasets:
+                print("Removing ", dataset)
+                shutil.rmtree(dataset)
 
     # Remove added datasets in  TestConfig["UPLOAD_FOLDER"]
     temp_upload_folder = app.config["UPLOAD_FOLDER"]
