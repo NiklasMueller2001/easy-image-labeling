@@ -1,3 +1,6 @@
+import re
+
+
 def test_create_new_dataset(client, tmp_path, create_tmp_dataset):
     """
     GIVEN an app instance
@@ -43,7 +46,6 @@ def test_create_new_dataset(client, tmp_path, create_tmp_dataset):
     for file in (tmp_path / "temp_dataset2").glob("*"):
         with open(file, "rb") as f:
             data["files"].append((file.absolute(), file.name))
-
 
     batch_size = 2
     num_batches = len(data["files"]) // batch_size + (
@@ -143,12 +145,15 @@ def test_upload_fails_for_unsupported_file_types(
     # Expect failure because of unsupported file extensions
     assert response.status_code == 400
     # Check if flashed error message contains expected content
-    exptected_flashed_message = "Invalid file type: temp_image_5.txt.\nAllowed filetypes are ('jpg', 'jpeg', 'JPEG', 'png', 'pdf')"
     response = client.post(
         "/config/dataset_upload_failed", data=data, content_type="multipart/form-data"
     )
     with client.session_transaction() as session:
-        assert dict(session["_flashes"]).get("error") == exptected_flashed_message
+        error_msg: str = dict(session["_flashes"]).get("error", "")
+        assert re.match(
+            r"Invalid file type: temp_image_\d+\.txt\.\nAllowed filetypes are \('jpg', 'jpeg', 'JPEG', 'png', 'pdf'\)",
+            error_msg,
+        )
 
     # CASE 2: TRY TO UPLOAD ENTIRE DATASET IN MULTIPLE BATCHES
     create_unsupported_test_dataset("unsupported_dset3")
@@ -156,7 +161,7 @@ def test_upload_fails_for_unsupported_file_types(
     data = {"files": [], "dataset_name": "temp_unsupported_dset3"}
 
     # Open each file and add it as a tuple: (filename, file object)
-    for file in (tmp_path / "temp_unsupported_dset3").glob("*"):
+    for file in sorted((tmp_path / "temp_unsupported_dset3").glob("*")):
         with open(file, "rb") as f:
             data["files"].append((file.absolute(), file.name))
 
@@ -177,7 +182,7 @@ def test_upload_fails_for_unsupported_file_types(
             query_string={"batch_idx": i},
             content_type="multipart/form-data",
         )
-        if i < 2:
+        if not any(map(lambda t: t[1].endswith(".txt"), data_batch["files"])):
             assert response.status_code == 204
         else:
             assert response.status_code == 400
